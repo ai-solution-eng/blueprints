@@ -7,7 +7,7 @@
 # distribution of this software and related documentation without an express
 # license agreement from NVIDIA CORPORATION is strictly prohibited.
 
-global: {ngcImagePullSecretName: ""}
+global: {ngcImagePullSecretName: "ngc-docker-reg-secret"}
 nvcf:
   dockerRegSecrets: []
   additionalSecrets: []
@@ -17,6 +17,8 @@ vss:
     vss-deployment:
       containers:
         vss:
+          startupProbe:
+            failureThreshold: 360
           env:
           - name: FRONTEND_PORT
             value: '9000'
@@ -87,6 +89,8 @@ vss:
   llmModelChat: meta/llama-3.1-70b-instruct
   resources:
     limits:
+      cpu: "4"
+      memory: "96Gi"
       nvidia.com/gpu: 2
 
   vlmModelPath: ngc:nim/nvidia/vila-1.5-40b:vila-yi-34b-siglip-stage3_1003_video_v8
@@ -219,6 +223,8 @@ nim-llm:
     tag: 1.3.0
   resources:
     limits:
+      cpu: "4"
+      memory: "192Gi"
       nvidia.com/gpu: 4
   model:
     name: meta/llama-3.1-70b-instruct
@@ -233,11 +239,13 @@ nim-llm:
 nemo-embedding:
   resources:
     limits:
+      cpu: "4"
+      memory: "48Gi"
       nvidia.com/gpu: 1
 
 nemo-rerank:
   resources:
     limits:
+      cpu: "4"
+      memory: "48Gi"
       nvidia.com/gpu: 1
-
-

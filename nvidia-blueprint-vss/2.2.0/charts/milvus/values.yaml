@@ -38,7 +38,12 @@ applicationSpecs:
         - containerPort: 9091
           name: http2
         resources:
+          requests:
+            cpu: "500m"
+            memory: "1Gi"
           limits:
+            cpu: "2"
+            memory: "2Gi"
             nvidia.com/gpu: 0
     services:
       milvus-service:
