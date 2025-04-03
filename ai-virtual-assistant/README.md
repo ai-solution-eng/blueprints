@@ -1,6 +1,6 @@
 # AI Virtual Assistant Helm Chart
 
-This Helm chart deploys the Nvidia AI Virtual Assistant and its associated services on HPE PCAI environments.
+This Helm chart deploys the [Nvidia AI Virtual Assistant](https://github.com/NVIDIA-AI-Blueprints/ai-virtual-assistant) and its associated services on HPE PCAI environments.
 
 ## Prerequisites
 
@@ -29,12 +29,12 @@ If you're going to use an MLIS-provided model (meta/llama-3.1-8b-instruct recomm
         Set the following boxes on the Framework Details step:
         Framework Name: AIVA
 
-        Version: Use the version number in the tgz file name
+        Version: Use the version number in the tgz file name (1.1.2)
         Description: NVIDIA AIVA 
 
         Category: Select Data Science.
 
-        Framework Icon: Click Select File and select the image in this directory.
+        Framework Icon: Click Select File and select the icon you want to use.
         
         Helm Chart: Choose the packaged chart file (.tgz) in this directory.
         
