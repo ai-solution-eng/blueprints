@@ -35,7 +35,7 @@ aiva-ui:
 ezua:
   #Use next options in order to configure the application endpoint.    
   virtualService:
-    endpoint: "aiva.<CHANGE_ME>" # EDIT THIS IF your domain name is different
+    endpoint: "aiva.${DOMAIN_NAME}" # EDIT THIS IF your domain name is different
     istioGateway: "istio-system/ezaf-gateway"
   # if your cluster has self-signed certs, and you're using an MLIS endpoint, you'll need to enable this 
   # to add the certs to the agent deployment so it can trust it
