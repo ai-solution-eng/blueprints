@@ -75,12 +75,12 @@ podAnnotations: {}
 podSecurityContext: {}
 replicaCount: 1
 resources:
-  limits:
-    cpu: "2"
-    memory: 30Gi
   requests:
-    cpu: "2"
-    memory: 30Gi
+    cpu: "1"
+    memory: 1Gi
+  limits:
+    cpu: "4"
+    memory: 16Gi
 securityContext: {}
 storageClaims: {}
 tolerations: []

@@ -69,11 +69,11 @@ podSecurityContext: {}
 replicaCount: 1
 resources:
   requests:
-    cpu: "8"
-    memory: "30Gi"
+    cpu: "1"
+    memory: "1Gi"
   limits:
-    cpu: "8"
-    memory: "30Gi"
+    cpu: "4"
+    memory: "8Gi"
 securityContext: {}
 storageClaims: {}
 tolerations: []

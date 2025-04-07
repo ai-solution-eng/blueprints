@@ -54,7 +54,7 @@ applicationSpecs:
           name: http
         resources:
           limits:
-            nvidia.com/gpu: 2
+            nvidia.com/gpu: 1
     securityContext:
       runAsGroup: 1000
       runAsUser: 1000

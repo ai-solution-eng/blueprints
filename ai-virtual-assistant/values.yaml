@@ -7,6 +7,7 @@
 # distribution of this software and related documentation without an express
 # license agreement from NVIDIA CORPORATION is strictly prohibited.
 
+# This secret is automatically created as part of the deployment
 global:
   ngcImagePullSecretName: "ngc-docker-reg-secret"
 
@@ -14,30 +15,29 @@ nvcf:
   dockerRegSecrets:
     - name: "ngc-docker-reg-secret"
       username: "$oauthtoken"
-      password: "<YOUR_NGC_API_KEY>"
+      password: "<REQUIRED: ADD NGC KEY"
 
   additionalSecrets:
     - name: "ngc-secret"
       stringData:
         key: "ngc-api-key"
-        value: "<YOUR_NGC_API_KEY>"
+        value: "<REQUIRED: ADD NGC KEY"
   # if you are using nvidia-hosted enpoints you need you your api key (not your ngc key)
-  # uncomment this and add your key below
+  # uncomment this and add your key below. Ensure your key has full permissions.
   #  - name: "nvidia-api-key"
   #    stringData:
   #      key: "nvidia-api-key"
   #      value: "<YOUR_NV_API_KEY"
 
-
 aiva-ui:
   fullnameOverride: "aiva-ui"
 
 ezua:
-  #Use next options in order to configure the application endpoint.    
+  #Use next options in order to configure the application endpoint.
   virtualService:
     endpoint: "aiva.${DOMAIN_NAME}" # EDIT THIS IF your domain name is different
     istioGateway: "istio-system/ezaf-gateway"
-  # if your cluster has self-signed certs, and you're using an MLIS endpoint, you'll need to enable this 
+  # if your cluster has self-signed certs, and you're using an MLIS endpoint, you'll need to enable this
   # to add the certs to the agent deployment so it can trust it
   #and then uncomment out the extrapod volume and args section below
   selfSignedCerts: true
@@ -68,13 +68,13 @@ agent-services:
           - name: EXAMPLE_PATH
             value: ./src/agent
           - name: APP_LLM_MODELNAME
-            value: meta/llama-3.1-8b-instruct
+            value: "<REQUIRED: ADD LLM MODEL NAME e.g. meta/llama-3.1-8b-instruct>"
           - name: APP_LLM_MODELENGINE
             value: nvidia-ai-endpoints
           - name: APP_LLM_SERVERURL
-            value: https://llama-3-8b-instruct-predictor-alegmoralesm-gm-0f9e3610.ingress.si5890.vcfmr.local/v1
+            value: "<OPTIONAL: ADD MLIS ENDPOINT/v1, or remove line if using NVIDIA Endpoint>"
           - name: APP_LLM_API_KEY
-            value: <token goes here>
+            value: "<OPTIONAL: ADD MLIS API KEY if using MLIS Endpoint>"
           - name: APP_CACHE_NAME
             value: redis
           - name: APP_CACHE_URL
@@ -102,7 +102,7 @@ agent-services:
           - name: STRUCTURED_RAG_URI
             value: http://retriever-structured-structured-deployment-structured-service:8087
           - name: NVIDIA_API_KEY # Manually update your key here if connecting to hosted nvidia endpoint
-            value: "<UPDATE_ME>"
+            value: "<OPTIONAL: ADD NVIDIA API KEY if using NVIDIA Endpoint>"
           - name: GRAPH_RECURSION_LIMIT
             value: '200'
           - name: GRAPH_TIMEOUT_IN_SEC
@@ -115,11 +115,11 @@ agent-services:
             value: INFO
           resources:
             requests:
-              cpu: "8"
-              memory: "30Gi"
+              cpu: "1"
+              memory: "1Gi"
             limits:
-              cpu: "8"
-              memory: "30Gi"
+              cpu: "4"
+              memory: "16Gi"
 
   egress:
     llm-nim:
@@ -166,16 +166,16 @@ analytics-services:
           - name: PERSIST_DATA
             value: 'true'
           - name: NVIDIA_API_KEY # Manually update your key here if connecting to hosted nvidia endpoint
-            value: "<UPDATE_ME>"
+            value: "<OPTIONAL: ADD NVIDIA API KEY if using NVIDIA Endpoint>"
           - name: LOGLEVEL
             value: INFO
           resources:
             requests:
-              cpu: "2"
-              memory: "30Gi"
+              cpu: "1"
+              memory: "1Gi"
             limits:
-              cpu: "2"
-              memory: "30Gi"
+              cpu: "4"
+              memory: "16Gi"
 
   egress:
     llm-nim:
@@ -198,11 +198,11 @@ milvus:
             value: 2048;4096
           resources:
             requests:
-              cpu: "2"
-              memory: "30Gi"
+              cpu: "1"
+              memory: "1Gi"
             limits:
-              cpu: "2"
-              memory: "30Gi"
+              cpu: "4"
+              memory: "16Gi"
   egress:
     etcd:
       address: etcd-etcd-deployment-etcd-service
@@ -247,7 +247,7 @@ retriever-canonical:
           - name: APP_TEXTSPLITTER_CHUNKOVERLAP
             value: '200'
           - name: NVIDIA_API_KEY # Manually update your key here if connecting to hosted nvidia endpoint
-            value: "<UPDATE_ME>"
+            value: "<OPTIONAL: ADD NVIDIA API KEY if using NVIDIA Endpoint>"
           - name: COLLECTION_NAME
             value: unstructured_data
           - name: APP_RETRIEVER_TOPK
@@ -260,11 +260,11 @@ retriever-canonical:
             value: INFO
           resources:
             requests:
-              cpu: "2"
-              memory: "30Gi"
+              cpu: "1"
+              memory: "1Gi"
             limits:
-              cpu: "2"
-              memory: "30Gi"
+              cpu: "4"
+              memory: "16Gi"
   egress:
     llm-nim:
       address: nemollm-inference-nemollm-infer-deployment-llm-service
@@ -310,7 +310,7 @@ retriever-structured:
               of context, you will refrain from replying and politely decline to respond
               to the user.
           - name: NVIDIA_API_KEY # Manually update your key here if connecting to hosted nvidia endpoint
-            value: "<UPDATE_ME>"
+            value: "<OPTIONAL: ADD NVIDIA API KEY if using NVIDIA Endpoint>"
           - name: COLLECTION_NAME
             value: structured_data
           - name: APP_DATABASE_NAME
@@ -333,11 +333,11 @@ retriever-structured:
             value: INFO
           resources:
             requests:
-              cpu: "2"
-              memory: "30Gi"
+              cpu: "1"
+              memory: "1Gi"
             limits:
-              cpu: "2"
-              memory: "30Gi"
+              cpu: "4"
+              memory: "16Gi"
   egress:
     llm-nim:
       address: nemollm-inference-nemollm-infer-deployment-llm-service
@@ -357,11 +357,11 @@ api-gateway:
             value: http://analytics-services-analytics-deployment-analytics-service:8082
           resources:
             requests:
-              cpu: "2"
-              memory: "30Gi"
+              cpu: "1"
+              memory: "1Gi"
             limits:
               cpu: "2"
-              memory: "30Gi"
+              memory: "8Gi"
   egress:
     chain-server-agent:
       address: agent-services-agent-services-deployment-agent-service
@@ -408,11 +408,11 @@ ingest-client:
         name: ingest-pdf-to-canonical
         resources:
           requests:
-            cpu: "8"
-            memory: "30Gi"
+            cpu: "1"
+            memory: "1Gi"
           limits:
-            cpu: "8"
-            memory: "30Gi"
+            cpu: "4"
+            memory: "16Gi"
 
   egress:
     postgres:
@@ -432,15 +432,15 @@ ranking-ms:
         ranking-container:
           env:
           - name: NGC_API_KEY
-            value: ""
+            value: "<REQUIRED: ADD NGC API KEY>"
           resources:
             requests:
-              cpu: "2"
-              memory: "30Gi"
+              cpu: "1"
+              memory: "8Gi"
               nvidia.com/gpu: 1
             limits:
-              cpu: "2"
-              memory: "30Gi"
+              cpu: "4"
+              memory: "32Gi"
               nvidia.com/gpu: 1
 
 nemollm-inference:
@@ -450,15 +450,15 @@ nemollm-inference:
         nemollm-infer-container:
           env:
           - name: NGC_API_KEY
-            value: ""
+            value: "<REQUIRED: ADD NGC API KEY>"
           resources:
             requests:
-              cpu: "8"
-              memory: "150Gi"
+              cpu: "2"
+              memory: "48Gi"
               nvidia.com/gpu: 1
             limits:
               cpu: "8"
-              memory: "150Gi"
+              memory: "48Gi"
               nvidia.com/gpu: 1
 
 
@@ -469,13 +469,13 @@ nemollm-embedding:
         embedding-container:
           env:
           - name: NGC_API_KEY
-            value: ""
+            value: "<REQUIRED: ADD NGC API KEY>"
           resources:
             requests:
-              cpu: "2"
-              memory: "30Gi"
+              cpu: "1"
+              memory: "8Gi"
               nvidia.com/gpu: 1
             limits:
-              cpu: "2"
-              memory: "30Gi"
+              cpu: "4"
+              memory: "32Gi"
               nvidia.com/gpu: 1
