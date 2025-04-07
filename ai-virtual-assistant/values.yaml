@@ -15,13 +15,13 @@ nvcf:
   dockerRegSecrets:
     - name: "ngc-docker-reg-secret"
       username: "$oauthtoken"
-      password: "<REQUIRED: ADD NGC KEY"
+      password: "<REQUIRED: ADD NGC KEY>"
 
   additionalSecrets:
     - name: "ngc-secret"
       stringData:
         key: "ngc-api-key"
-        value: "<REQUIRED: ADD NGC KEY"
+        value: "<REQUIRED: ADD NGC KEY>"
   # if you are using nvidia-hosted enpoints you need you your api key (not your ngc key)
   # uncomment this and add your key below. Ensure your key has full permissions.
   #  - name: "nvidia-api-key"
