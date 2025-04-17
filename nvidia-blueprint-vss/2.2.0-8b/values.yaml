@@ -7,6 +7,16 @@
 # distribution of this software and related documentation without an express
 # license agreement from NVIDIA CORPORATION is strictly prohibited.
 
+ezua:
+  #Use next options in order to configure the application endpoint.
+  virtualService:
+    endpoint: "vss.${DOMAIN_NAME}" # EDIT THIS IF your domain name is different
+    istioGateway: "istio-system/ezaf-gateway"
+  # if your cluster has self-signed certs, and you're using an MLIS endpoint, you'll need to enable this
+  # to add the certs to the agent deployment so it can trust it
+  #and then uncomment out the extrapod volume and args section below
+  selfSignedCerts: true
+
 global: {ngcImagePullSecretName: "ngc-docker-reg-secret"}
 nvcf:
   dockerRegSecrets: []
@@ -20,6 +30,8 @@ vss:
           startupProbe:
             failureThreshold: 360
           env:
+          - name: NCCL_DEBUG
+            value: INFO
           - name: FRONTEND_PORT
             value: '9000'
           - name: BACKEND_PORT
@@ -35,9 +47,9 @@ vss:
           - name: MILVUS_DB_PORT
             value: '19530'
           - name: VLM_MODEL_TO_USE
-            value: vila-1.5
+            value: nvila
           - name: MODEL_PATH
-            value: ngc:nim/nvidia/vila-1.5-40b:vila-yi-34b-siglip-stage3_1003_video_v8
+            value: "git:https://huggingface.co/Efficient-Large-Model/NVILA-15B"
           - name: DISABLE_GUARDRAILS
             value: 'false'
           - name: OPENAI_API_KEY_NAME
@@ -224,8 +236,8 @@ nim-llm:
   resources:
     limits:
       cpu: "4"
-      memory: "96Gi"
-      nvidia.com/gpu: 2
+      memory: "64Gi"
+      nvidia.com/gpu: 1
   model:
     name: meta/llama-3.1-8b-instruct
     ngcAPISecret: ngc-api-key-secret

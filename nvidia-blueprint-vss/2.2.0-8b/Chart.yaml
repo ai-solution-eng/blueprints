@@ -27,4 +27,4 @@ dependencies:
 description: Video Search and Summarization Agent Blueprint
 name: nvidia-blueprint-vss
 type: application
-version: 2.2.0
+version: 2.2.4
