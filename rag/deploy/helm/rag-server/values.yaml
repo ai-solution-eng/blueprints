@@ -5,12 +5,12 @@ imagePullSecret:
   name: "ngc-secret"
   registry: "nvcr.io"
   username: "$oauthtoken"
-  password: ""
+  password: "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"
   create: true
 
 ngcApiSecret:
   name: "ngc-api"
-  password: ""
+  password: "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"
   create: true
 
 # RAG server config
@@ -457,7 +457,7 @@ frontend:
     username: "$oauthtoken"
     password: ""
   service:
-    type: NodePort
+    type: ClusterIP
     port: 3000
   envVars:
     - name: NEXT_PUBLIC_MODEL_NAME
