@@ -1,0 +1,31 @@
+imagePullSecret:
+  password: ""
+
+
+ngcApiSecret:
+  password: ""
+
+frontend:
+  service:
+    type: ClusterIP
+
+ezua:
+  virtualService:
+    endpoint: "rag.ingress.si5890.vcfmr.local" # EDIT THIS IF your domain name is different
+    istioGateway: "istio-system/ezaf-gateway"
+
+ingestor-server:
+  nv-ingest:
+    otelEnabled: false
+    otelDeployed: false
+    envVars:
+      EMBEDDING_NIM_ENDPOINT: "https://integrate.api.nvidia.com/v1"
+    milvus:
+      fullnameOverride: "milvus"
+
+envVars:
+  APP_LLM_SERVERURL: ""
+  APP_QUERYREWRITER_SERVERURL: ""
+  APP_EMBEDDINGS_SERVERURL: ""
+  APP_RANKING_SERVERURL: ""
+  NVIDIA_API_KEY: ""

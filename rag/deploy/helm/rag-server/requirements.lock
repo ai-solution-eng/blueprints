@@ -5,14 +5,5 @@ dependencies:
 - name: frontend
   repository: file://charts/frontend
   version: v1.0.0
-- name: zipkin
-  repository: https://zipkin.io/zipkin-helm
-  version: 0.1.2
-- name: opentelemetry-collector
-  repository: https://open-telemetry.github.io/opentelemetry-helm-charts
-  version: 0.78.1
-- name: kube-prometheus-stack
-  repository: https://prometheus-community.github.io/helm-charts
-  version: 69.7.2
-digest: sha256:3c048fbed4533a4f0da08699a9d1ec659860a74861e872a285dcd95b9e50eb91
-generated: "2025-04-24T14:26:44.739074-04:00"
+digest: sha256:01ed481557189c7f4fd1750d00fb5773ab23ef6c04e041f82d4124253505b003
+generated: "2025-05-01T10:23:03.514765-04:00"

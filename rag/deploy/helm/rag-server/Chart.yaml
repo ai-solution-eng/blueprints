@@ -3,7 +3,7 @@ appVersion: v2.0.0
 description: An end to end Helm chart for the NVIDIA RAG Blueprint
 name: nvidia-rag
 type: application
-version: v2.0.0
+version: v2.0.2
 
 dependencies:
   - name: ingestor-server
@@ -14,15 +14,3 @@ dependencies:
     repository: "file://charts/frontend"
     version: v1.0.0
     condition: frontend.enabled
-  - name: zipkin
-    repository: https://zipkin.io/zipkin-helm
-    version: 0.1.2
-    condition: zipkin.enabled
-  - name: opentelemetry-collector
-    repository: https://open-telemetry.github.io/opentelemetry-helm-charts
-    version: 0.78.1
-    condition: opentelemetry-collector.enabled
-  - name: kube-prometheus-stack
-    version: 69.7.2
-    repository: "https://prometheus-community.github.io/helm-charts"
-    condition: kube-prometheus-stack.enabled
