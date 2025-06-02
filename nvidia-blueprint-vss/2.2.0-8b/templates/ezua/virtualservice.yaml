@@ -14,9 +14,8 @@ spec:
             prefix: /
       rewrite:
         uri: /
-
       route:
-      destination:
-          host: {{ include "std-helm.name" (index .Subcharts "vss") }}-service.{{ .Release.Namespace }}.svc.cluster.local
-          port:
-            number: {{ include ".Values.applicationSpecs.vss-deployment.services.vss-service.ports.webui" (index .Subcharts "vss") }}
+      - destination:
+            host: {{ include "std-helm.name" (index .Subcharts "vss") }}-service.{{ .Release.Namespace }}.svc.cluster.local
+            port:
+              number: {{ include ".Values.applicationSpecs.vss-deployment.services.vss-service.ports.webui" (index .Subcharts "vss") }}
