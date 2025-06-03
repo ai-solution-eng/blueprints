@@ -1,5 +1,5 @@
 
-# Nvidia Video Search and Summarization Agent Helm Chart
+# Nvidia Video Search and Summarization Agent Helm Chart with 8b model
 This Helm chart deploys the Nvidia Video Search and Summarization Agent Blueprint https://github.com/NVIDIA-AI-Blueprints/video-search-and-summarization and its associated services on HPE PCAI environments in an adpated variation using a local 8b Llama model instead of 70b.
 
 ## Prerequisites
@@ -33,7 +33,7 @@ c. Click **+ Import Framework**. Navigate through each step within the Import Fr
 
         Framework Icon: Click Select File and select the icon you want to use, e.g. the .jpg file in the parent folder.
         
-        Helm Chart: Choose the packaged chart file nvidia-blueprint-2.2.4-8.b.tgz in the parent folder.
+        Helm Chart: Choose the packaged chart file nvidia-blueprint-2.2.4-8b.tgz in the parent folder.
         
         Namespace: where you created your secrets in, for example vss
 
