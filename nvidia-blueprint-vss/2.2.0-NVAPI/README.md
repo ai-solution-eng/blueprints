@@ -32,7 +32,7 @@ c. Click **+ Import Framework**. Navigate through each step within the Import Fr
 
         Framework Icon: Click Select File and select the icon you want to use, e.g. the .jpg file in the parent folder.
         
-        Helm Chart: Choose the packaged chart file nvidia-blueprint-2.2.4-8.b.tgz in the parent folder.
+        Helm Chart: Choose the packaged chart file nvidia-blueprint-2.2.4-nvapi.tgz in the parent folder.
         
         Namespace: where you created your secrets in, for example vss
 
