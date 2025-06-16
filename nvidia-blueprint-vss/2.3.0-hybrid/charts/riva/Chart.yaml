@@ -1,0 +1,6 @@
+apiVersion: v2
+appVersion: 2.3.0
+description: nvidia/parakeet-ctc-0_6b-asr NIM microservice
+name: riva
+type: application
+version: 2.3.0

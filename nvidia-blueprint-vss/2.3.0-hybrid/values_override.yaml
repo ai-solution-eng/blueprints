@@ -1,0 +1,139 @@
+
+# Copyright (c) 2023, NVIDIA CORPORATION.  All rights reserved.
+#
+# NVIDIA CORPORATION and its licensors retain all intellectual property
+# and proprietary rights in and to this software, related documentation
+# and any modifications thereto.  Any use, reproduction, disclosure or
+# distribution of this software and related documentation without an express
+# license agreement from NVIDIA CORPORATION is strictly prohibited.
+
+
+# Copyright (c) 2023, NVIDIA CORPORATION.  All rights reserved.
+#
+# NVIDIA CORPORATION and its licensors retain all intellectual property
+# and proprietary rights in and to this software, related documentation
+# and any modifications thereto.  Any use, reproduction, disclosure or
+# distribution of this software and related documentation without an express
+# license agreement from NVIDIA CORPORATION is strictly prohibited.
+
+vss:
+  namespace: default
+  serviceAccount: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  storageClassName: ''
+  resources:
+    limits:
+      cpu: "8"
+      nvidia.com/gpu: 2
+etcd:
+  namespace: default
+  serviceAccount: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  storageClassName: ''
+  resources: 
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "2"
+      memory: "2Gi"
+minio:
+  namespace: default
+  serviceAccount: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  storageClassName: ''
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "2"
+      memory: "2Gi"
+milvus:
+  namespace: default
+  serviceAccount:
+    create: false
+    name: null
+    annotations: null
+    labels: null
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  storageClassName: ''
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "2"
+      memory: "2Gi"
+      nvidia.com/gpu: 0
+neo4j:
+  namespace: default
+  serviceAccount: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  storageClassName: ''
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "2"
+      memory: "2Gi"
+# nim-llm:
+#   namespace: default
+#   serviceAccount:
+#     create: false
+#     annotations: {}
+#     name: ''
+#   nodeSelector: {}
+#   tolerations:
+#   - key: nvidia.com/gpu
+#     operator: Exists
+#     effect: NoSchedule
+#   affinity: {}
+#   storageClassName: ''
+nemo-embedding:
+  namespace: default
+  serviceAccount: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  storageClassName: ''
+  resources:
+    requests:
+      cpu: "4"
+      memory: "16Gi"
+    limits:
+      cpu: "4"
+      memory: "16Gi"
+      nvidia.com/gpu: 1
+# nemo-rerank:
+#   namespace: default
+#   serviceAccount: {}
+#   nodeSelector: {}
+#   tolerations: []
+#   affinity: {}
+#   storageClassName: ''
+riva:
+  namespace: default
+  serviceAccount: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  storageClassName: ''
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "2"
+      memory: "2Gi"

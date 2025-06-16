@@ -1,0 +1,1786 @@
+# Copyright (c) 2023, NVIDIA CORPORATION.  All rights reserved.
+#
+# NVIDIA CORPORATION and its licensors retain all intellectual property
+# and proprietary rights in and to this software, related documentation
+# and any modifications thereto.  Any use, reproduction, disclosure or
+# distribution of this software and related documentation without an express
+# license agreement from NVIDIA CORPORATION is strictly prohibited.
+
+Component:
+  app-version: 2.3.0
+  description: VSS microservice
+  helmUrlLocationPath: https://helm.ngc.nvidia.com/myorg/myteam/charts
+  name: vss
+  version: 2.3.0
+affinity: {}
+applicationSpecs:
+  vss-deployment:
+    apptype: stateless
+    containers:
+      vss:
+        command:
+        - bash
+        - /opt/scripts/start.sh
+        env:
+        - name: FRONTEND_PORT
+          value: '9000'
+        - name: BACKEND_PORT
+          value: '8000'
+        - name: GRAPH_DB_URI
+          value: bolt://$egress.neo4j-bolt.address:$egress.neo4j-bolt.port
+        - name: GRAPH_DB_USERNAME
+          value: neo4j
+        - name: GRAPH_DB_PASSWORD
+          value: password
+        - name: MILVUS_DB_HOST
+          value: $egress.milvus.address
+        - name: MILVUS_DB_PORT
+          value: $egress.milvus.port
+        - name: VLM_MODEL_TO_USE
+          value: $params.vlmModelType
+        - name: MODEL_PATH
+          value: $params.vlmModelPath
+        - name: DISABLE_GUARDRAILS
+          value: $params.disableGuardrails
+        - name: OPENAI_API_KEY_NAME
+          value: $params.openaiApiKeyName
+        - name: NVIDIA_API_KEY_NAME
+          value: $params.nvidiaApiKeyName
+        - name: NGC_API_KEY_NAME
+          value: $params.ngcApiKeyName
+        - name: TRT_LLM_MODE
+          value: $params.trtllmMode
+        - name: VLM_BATCH_SIZE
+          value: $params.vlmBatchSize
+        - name: VIA_VLM_OPENAI_MODEL_DEPLOYMENT_NAME
+          value: $params.vlmOpenAiModelName
+        - name: VIA_VLM_ENDPOINT
+          value: $params.vlmEndpoint
+        - name: VIA_VLM_API_KEY
+          value: $params.vlmApiKey
+        - name: OPENAI_API_VERSION
+          value: $params.openAiVersion
+        - name: AZURE_OPENAI_API_VERSION
+          value: $params.azureApiVersion
+        - name: ENABLE_AUDIO
+          value: $params.enableAudio
+        - name: RIVA_ASR_SERVER_URI
+          value: $egress.riva-api.address
+        - name: RIVA_ASR_GRPC_PORT
+          value: '50051'
+        - name: RIVA_ASR_HTTP_PORT
+          value: '9000'
+        - name: ENABLE_RIVA_SERVER_READINESS_CHECK
+          value: 'false'
+        - name: RIVA_ASR_SERVER_IS_NIM
+          value: 'true'
+        - name: RIVA_ASR_SERVER_USE_SSL
+          value: 'false'
+        - name: RIVA_ASR_SERVER_API_KEY
+          value: ''
+        - name: RIVA_ASR_SERVER_FUNC_ID
+          value: ''
+        - name: INSTALL_PROPRIETARY_CODECS
+          value: 'false'
+        image:
+          pullPolicy: IfNotPresent
+          repository: nvcr.io/nvidia/blueprint/vss-engine
+          tag: 2.3.0
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: http-api
+        ports:
+        - containerPort: 8000
+          name: http-api
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: http-api
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        startupProbe:
+          failureThreshold: 300
+          httpGet:
+            path: /health/ready
+            port: http-api
+          periodSeconds: 10
+        volumeMounts:
+        - mountPath: /tmp/via-ngc-model-cache
+          name: ngc-model-cache-volume
+    initContainers:
+    - command:
+      - sh
+      - -c
+      - until nc -z -w 2 $egress.milvus.address $egress.milvus.port; do echo waiting
+        for milvus; sleep 2; done
+      image: busybox:1.28
+      imagePullPolicy: IfNotPresent
+      name: check-milvus-up
+    - command:
+      - sh
+      - -c
+      - until nc -z -w 2 $egress.neo4j-bolt.address $egress.neo4j-bolt.port; do echo
+        waiting for neo4j; sleep 2; done
+      image: busybox:1.28
+      imagePullPolicy: IfNotPresent
+      name: check-neo4j-up
+    - args:
+      - "while ! curl -s -f -o /dev/null http://$egress.llm-openai-api.address:$egress.llm-openai-api.port/v1/health/live;\
+        \ do\n  echo \"Waiting for LLM...\"\n  sleep 2\ndone\n"
+      command:
+      - sh
+      - -c
+      image: curlimages/curl:latest
+      name: check-llm-up
+    restartPolicy: Always
+    securityContext:
+      fsGroup: 0
+      runAsGroup: 0
+      runAsUser: 0
+    services:
+      vss-service:
+        fullNameOverride: true
+        ports:
+        - name: http-api
+          port: 8000
+        - name: webui
+          port: 9000
+        type: NodePort
+    volumes:
+    - name: ngc-model-cache-volume
+      persistentVolumeClaim:
+        claimName: vss-ngc-model-cache-pvc
+    restartPodOnConfigChanges:
+    - configmap: vss-configs-cm
+      templateFile: configmaps.yaml
+    - configmap: vss-scripts-cm
+      templateFile: scripts-configmaps.yaml
+    - configmap: vss-workload-cm
+      templateFile: wl-configmaps.yaml
+    - configmap: vss-external-files-cm
+      templateFile: external_files.yaml
+azureApiVersion: ''
+cm-dependencies:
+  addAll: true
+defaultVolumeMounts:
+- mountPath: /opt/workload-config
+  name: workload-cm-volume
+- mountPath: /opt/configs
+  name: configs-volume
+- mountPath: /opt/scripts
+  name: scripts-cm-volume
+defaultVolumes:
+- configMap:
+    name: vss-workload-cm
+  name: workload-cm-volume
+- configMap:
+    name: vss-configs-cm
+  name: configs-volume
+- configMap:
+    name: vss-scripts-cm
+  name: scripts-cm-volume
+disableGuardrails: 'false'
+egress:
+  llm-openai-api:
+    address: <PLACEHOLDER>
+    port: 0
+  milvus:
+    address: <PLACEHOLDER>
+    port: 0
+  nemo-embed:
+    address: <PLACEHOLDER>
+    port: 0
+  nemo-rerank:
+    address: <PLACEHOLDER>
+    port: 0
+  neo4j-bolt:
+    address: <PLACEHOLDER>
+    port: 0
+  riva-api:
+    address: <PLACEHOLDER>
+    port: 0
+enableAudio: 'false'
+externalFiles: []
+image:
+  pullPolicy: IfNotPresent
+imagePullSecrets: []
+ingress:
+  enabled: false
+llmModel: meta/llama3-8b-instruct
+llmModelChat: gpt-4o
+metrics: {}
+ngcApiKeyName: VSS_NGC_API_KEY
+nodeSelector: {}
+nvidiaApiKeyName: VSS_NVIDIA_API_KEY
+openAiVersion: ''
+openaiApiKeyName: VSS_OPENAI_API_KEY
+podAnnotations: {}
+podSecurityContext: {}
+replicaCount: 1
+resources: {}
+securityContext: {}
+storageClaims:
+  ngc-model-cache-pvc:
+    annotations:
+      helm.sh/resource-policy: keep
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 100Gi
+tolerations: []
+trtllmMode: int4_awq
+vlmApiKey: ''
+vlmBatchSize: ''
+vlmEndpoint: ''
+vlmModelPath: ''
+vlmModelType: openai-compat
+vlmOpenAiModelName: ''
+workloadSpecs:
+  dummy: {}
+
+
+
+configs:
+  bridge.mp4.graph_rag.yaml:
+    aggregation_prompt: 'You are a very reliable Q&A system. User data is stored in
+      a knowledge graph and some documents.\
+
+      Given the user question, some preprocessing is already performed and you are
+      provided with context \
+
+      fetched from the documents and the cypher query along with the \
+
+      cypher query result from the knowledge graph.  Use this information along with
+      \
+
+      the chat history and and try to answer the user question IN DETAIL. Not all
+      sources \
+
+      (context, cypher query, cypher response) may contain the answer.  Use the most
+      relevant \
+
+      source/sources to answer the question but give more weightage to context than
+      to the cypher query \
+
+      and cypher response if there is any conflicting information. When the question
+      about time, give more \
+
+      weightage to the cypher query and cypher response. if it is present otherwise
+      use the context. \
+
+      If answer can''t be provided respond with: \
+
+      ''Sorry, I can\''t answer that\'' and provide a reason. No pre-amble.
+
+      '
+    batch_summaries:
+      enable: false
+      prompt: 'You should summarize the following events of a warehouse in the format
+        start_time:end_time:caption. For start_time and end_time use . to seperate
+        seconds, minutes, hours. If during a time segment only regular activities
+        happen, then ignore them, else note any irregular activities in detail. The
+        output should be bullet points in the format start_time:end_time: detailed_event_description.
+        Don''t return anything else except the bullet points.
+
+        '
+      size: 2
+    chat_history:
+      contextualize_q_prompt: 'Given a chat history and the latest user question which
+        might reference context in the chat history, formulate a standalone question
+        which can be understood without the chat history. Do NOT answer the question,
+        just reformulate it if needed and otherwise return it as is. If no chat history
+        is provided, then return the original question. Do not add any additional
+        context to the question. No pre-amble.
+
+        '
+      enable: false
+    graph_rag:
+      allowed_nodes:
+      - rust
+      - graffiti
+      - bridge
+      embedding:
+        base_url: http://$egress.nemo-embed.address:$egress.nemo-embed.port/v1
+        model: nvidia/nv-embedqa-e5-v5
+      enable: true
+      extraction_prompt: '# Knowledge Graph Instructions for Llama
+
+        ## 1. Overview
+
+        You are a top-tier algorithm designed for extracting information in structured
+
+        formats to build a knowledge graph.
+
+
+        In this specific instance, you are given bridge events and descriptions.
+
+        Your task is to extract information from and construct a knowledge graph.
+
+
+        Try to capture as much information from the text as possible without
+
+        sacrifing accuracy. Do not add any information that is not explicitly
+
+        mentioned in the text
+
+        - **Nodes** represent bridge and objects on the bridge.
+
+        - The aim is to achieve simplicity and clarity in the knowledge graph, making
+        it
+
+        accessible for a vast audience.
+
+        - Add the text itself as the ''document'' property in the Node.
+
+
+        ## 2. Labeling Nodes
+
+        - **Consistency**: Ensure you use available types for node labels.
+
+        Ensure you use basic or elementary types for node labels.
+
+        - For example, when you identify an entity representing graffiti,
+
+        always label it as **''graffiti''**. Avoid using more specific terms
+
+        like ''White_Graffiti'' or ''Tag_Style_Graffiti''. Add ''color'': ''white''
+        and
+
+        ''style'': ''tag'' as properties in the node instead
+
+        But ensure that you add a ''description'' of the bridge, graffiti, rust, etc.
+
+
+        - **Node IDs**: Never utilize integers as node IDs. Node IDs should be
+
+        names or human-readable identifiers found in the text.
+
+
+        - **Relationships** represent interactions and relative locations between
+        nodes.
+
+        For instance, the orange ''rust'' is on the old ''bridge''
+
+        ''rust'' should be added as ''rust'' nodes, bridge should be added as ''bridge''
+        nodes, and on should be added as a relationship.
+
+        ''rust'' should have a property ''color'' with value ''orange''.
+
+        ''bridge'' should have a property ''type'' with value ''old''.
+
+        Ensure consistency and generality in relationship types when constructing
+
+        knowledge graphs. Instead of using specific and momentary types
+
+        such as ''FALL DOWN'', use more general and timeless relationship types
+
+        like ''FALL''. Make sure to use general and timeless relationship types!
+
+        ALWAYS add the given start and end timestamp as part of relationship''s properties.
+
+        Convert the timestamps to integers before adding them. USE apt format.
+
+        - **Example**: If the sentence is ""100.00:120.00 Orange tag style graffiti
+        on old bridge"",
+
+        the Cypher commands should be:
+
+        CREATE (:Graffiti {{style: ""tag"", color: ""orange"", description: ""<event
+        text>""}})
+
+        CREATE (:Bridge {{type: ""old"", description: ""<event text>""}})
+
+        Then, create relationships:
+
+        CREATE (:Graffiti)-[:On {{start_timestamp: 100, end_timestamp: 120}}]->(:Bridge)
+
+
+        ## 3. Coreference Resolution
+
+        - **Maintain Entity Consistency**: When extracting entities, it''s vital to
+
+        ensure consistency.
+
+        If an entity, such as ""John Doe"", is mentioned multiple times in the text
+
+        but is referred to by different names or pronouns (e.g., ""Joe"", ""he""),
+
+        always use the most complete identifier for that entity throughout the
+
+        knowledge graph. In this example, use ""John Doe"" as the entity ID.
+
+        Remember, the knowledge graph should be coherent and easily understandable,
+
+        so maintaining consistency in entity references is crucial.
+
+
+        ## 4. Strict Compliance
+
+        Adhere to the rules strictly. Non-compliance will result in termination.
+
+        '
+      node_properties:
+      - description
+      relationship_properties:
+      - start_timestamp
+      - end_timestamp
+      reranker:
+        base_url: http://$egress.nemo-rerank.address:$egress.nemo-rerank.port/v1
+        model: nvidia/nv-rerankqa-mistral-4b-v3
+      retrieval_prompt: 'Based on the Neo4j graph schema below, write a Cypher query
+        that would answer the user''s question:
+
+        Please be accurate, my life depends on this.
+
+
+        ## RULES:
+
+        - Double check if the query is valid Neo4j cypher query.
+
+        - The nodes with label ''Event'' or ''EventDescription'' contain the event
+        descriptions. Use these nodes to answer generic questions such as ''what is
+        happening?''
+
+        - Remaining nodes represent locations or objects or workers etc.
+
+        - The relationships/edges represent the interactions and relative locations
+        and other events that happened.
+
+        - Each relationship has a ''start_timestamp'' and ''end_timestamp''. Use this
+        property to filter if the Question is based on time.
+
+        - Use ONLY nodes and relationships mentioned in schema.
+
+        - ALWAYS undirected relationships matching.
+
+        - Additionally use the document property of the nodes to answer the question.
+
+        - RETURN JUST THE QUERY, NO FORMATTING.
+
+        - LIMIT to 200
+
+
+        ## EXAMPLE:
+
+        Question:
+
+        Which graffiti was on the bridge between <time> and <time>?
+
+        Cypher query:
+
+        MATCH (g:Graffiti)-[r:On]-(b:Bridge)
+
+        where r.timestamp < datetime(''<time>'')  and r.timestamp > datetime(''<time>'')
+
+        return g
+
+
+        ## SCHEMA:
+
+        {schema}
+
+        ###Question: {question}
+
+        ###Cypher query:
+
+        '
+    vector_rag:
+      enable: true
+      qna_prompt: 'You are an assistant for question-answering tasks. Use the following
+        pieces of retrieved context to answer the question. Answer the question in
+        detail. Include timestamps in the answer.
+
+        '
+  ca_rag_config.yaml:
+    chat:
+      embedding:
+        base_url: http://$egress.nemo-embed.address:$egress.nemo-embed.port/v1
+        model: nvidia/llama-3.2-nv-embedqa-1b-v2
+      llm:
+        base_url: http://$egress.llm-openai-api.address:$egress.llm-openai-api.port/v1
+        max_tokens: 2048
+        model: $params.llmModel
+        temperature: 0.2
+        top_p: 0.7
+      params:
+        batch_size: 1
+        top_k: 5
+      rag: graph-rag
+      reranker:
+        base_url: http://$egress.nemo-rerank.address:$egress.nemo-rerank.port/v1
+        model: nvidia/llama-3.2-nv-rerankqa-1b-v2
+    notification:
+      enable: true
+      endpoint: http://127.0.0.1:60000/via-alert-callback
+      llm:
+        base_url: http://$egress.llm-openai-api.address:$egress.llm-openai-api.port/v1
+        max_tokens: 2048
+        model: $params.llmModel
+        temperature: 0.2
+        top_p: 0.7
+    summarization:
+      embedding:
+        base_url: http://$egress.nemo-embed.address:$egress.nemo-embed.port/v1
+        model: nvidia/llama-3.2-nv-embedqa-1b-v2
+      enable: true
+      llm:
+        base_url: http://$egress.llm-openai-api.address:$egress.llm-openai-api.port/v1
+        max_tokens: 2048
+        model: $params.llmModel
+        temperature: 0.2
+        top_p: 0.7
+      method: batch
+      params:
+        batch_size: 5
+      prompts:
+        caption: Write a concise and clear dense caption for the provided warehouse
+          video, focusing on irregular or hazardous events such as boxes falling,
+          workers not wearing PPE, workers falling, workers taking photographs, workers
+          chitchatting, forklift stuck, etc. Start and end each sentence with a time
+          stamp.
+        caption_summarization: "You should summarize the topics in the format start_time:end_time:caption. For start_time and end_time, convert it from seconds to the format hours:minutes:seconds. The output should be bullet points in the format start_time:end_time: detailed_event_description. Don't return anything else except the bullet points."
+        summary_aggregation: "Given the caption in the form start_time:end_time: caption, aggregate the following captions in the format start_time:end_time:event_description. If the event_description is the same as another event_description, aggregate the captions in the format start_time1:end_time1,...,start_timek:end_timek:event_description. If any two adjacent end_time1 and start_time2 is within a few tenths of a second, merge the captions in the format start_time1:end_time2. The output should only contain bullet points.  Cluster the output into relevant topics based on the captions."
+  config.yaml:
+    SampleConfig:
+      sampleValue: 0
+  cv_pipeline_tracker_config.yml:
+    BaseConfig:
+      minDetectorConfidence: 0.1630084739998828
+    DataAssociator:
+      associationMatcherType: 1
+      checkClassMatch: 1
+      dataAssociatorType: 0
+      matchingScoreWeight4Iou: 0.46547889321000563
+      matchingScoreWeight4SizeSimilarity: 0.4463422634549605
+      matchingScoreWeight4VisualSimilarity: 0.7092410997389017
+      minMatchingScore4Iou: 0.29413058985254187
+      minMatchingScore4Overall: 0.06843005365443096
+      minMatchingScore4SizeSimilarity: 0.2929323932012989
+      minMatchingScore4TentativeIou: 0.45510391462097216
+      minMatchingScore4VisualSimilarity: 0.42453250143328114
+      tentativeDetectorConfidence: 0.1721247313806944
+    ReID:
+      addFeatureNormalization: 1
+      batchSize: 100
+      colorFormat: 0
+      inferDims:
+      - 3
+      - 256
+      - 128
+      inputOrder: 0
+      keepAspc: 1
+      modelEngineFile: /tmp/via/data/models/gdino-sam/resnet50_market1501_aicity156.onnx.engine
+      netScaleFactor: 0.01735207
+      networkMode: 1
+      offsets:
+      - 123.675
+      - 116.28
+      - 103.53
+      onnxFile: /tmp/via/data/models/gdino-sam/resnet50_market1501_aicity156.onnx
+      outputReidTensor: 0
+      reidFeatureSize: 256
+      reidHistorySize: 100
+      reidType: 2
+      tltModelKey: nvidia_tao
+      useVPICropScaler: 1
+      workspaceSize: 1000
+    StateEstimator:
+      measurementNoiseVar4Detector: 100.00000584166246
+      measurementNoiseVar4Tracker: 4988.392688178733
+      processNoiseVar4Loc: 6533.099736052837
+      processNoiseVar4Size: 6415.121729390737
+      processNoiseVar4Vel: 2798.795011988113
+      stateEstimatorType: 1
+    TargetManagement:
+      earlyTerminationAge: 1
+      enableBboxUnClipping: 0
+      maxShadowTrackingAge: 39
+      maxTargetsPerStream: 150
+      minIouDiff4NewTarget: 0.8176422840795657
+      minTrackerConfidence: 0.19878939278068558
+      preserveStreamUpdateOrder: 0
+      probationAge: 6
+    TrajectoryManagement:
+      enableReAssoc: 1
+      matchingScoreWeight4ReidSimilarity: 0.7200658660519842
+      matchingScoreWeight4TrackletSimilarity: 0.23836654600118312
+      maxAngle4TrackletMatching: 142
+      maxTrackletMatchingTimeSearchRange: 20
+      minBboxSizeSimilarity4TrackletMatching: 0.18214484831006444
+      minMatchingScore4Overall: 0.23583585666333318
+      minMatchingScore4ReidSimilarity: 0.24582563724796622
+      minSpeedSimilarity4TrackletMatching: 0.0023058182326161298
+      minTrackletMatchingScore: 0.09979720773093673
+      minTrajectoryLength4Projection: 37
+      prepLength4TrajectoryProjection: 50
+      reidExtractionInterval: 19
+      trackletSpacialSearchRegionScale: 0.2598
+      trajectoryProjectionLength: 43
+      trajectoryProjectionMeasurementNoiseScale: 100
+      trajectoryProjectionProcessNoiseScale: 0.01
+      useUniqueID: 0
+    VisualTracker:
+      featureFocusOffsetFactor_y: -0.15647586556568632
+      featureImgSizeLevel: 3
+      filterChannelWeightsLr: 0.07701879646606641
+      filterLr: 0.13560657062953396
+      gaussianSigma: 1.497826153095461
+      useColorNames: 1
+      useHog: 1
+      visualTrackerType: 2
+  graph_rag_config.yaml:
+    aggregation_prompt: 'You are a very reliable Q&A system. User data is stored in
+      a knowledge graph and some documents.\
+
+      Given the user question, some preprocessing is already performed and you are
+      provided with context \
+
+      fetched from the documents and the cypher query along with the \
+
+      cypher query result from the knowledge graph.  Use this information along with
+      \
+
+      the chat history and and try to answer the user question. Not all sources \
+
+      (context, cypher query, cypher response) may contain the answer.  Use the most
+      relevant \
+
+      source/sources to answer the question. If answer can''t be provided respond
+      with: \
+
+      ''Sorry, I can\''t answer that\'' No pre-amble.
+
+      '
+    batch_summaries:
+      enable: false
+      prompt: 'You should summarize the following events of a warehouse in the format
+        start_time:end_time:caption. For start_time and end_time use . to seperate
+        seconds, minutes, hours. If during a time segment only regular activities
+        happen, then ignore them, else note any irregular activities in detail. The
+        output should be bullet points in the format start_time:end_time: detailed_event_description.
+        Don''t return anything else except the bullet points.
+
+        '
+      size: 2
+    chat_history:
+      contextualize_q_prompt: 'Given a chat history and the latest user question which
+        might reference context in the chat history, formulate a standalone question
+        which can be understood without the chat history. Do NOT answer the question,
+        just reformulate it if needed and otherwise return it as is. If no chat history
+        is provided, then return the original question. Do not add any additional
+        context to the question. No pre-amble.
+
+        '
+      enable: false
+    graph_rag:
+      allowed_nodes:
+      - forklift
+      - worker
+      - warehouse
+      - box
+      - shelf
+      - caution_tape
+      - cones
+      - restricted_area
+      - photo
+      embedding:
+        base_url: http://$egress.nemo-embed.address:$egress.nemo-embed.port/v1
+        model: nvidia/nv-embedqa-e5-v5
+      enable: true
+      extraction_prompt: '# Knowledge Graph Instructions for Llama
+
+        ## 1. Overview
+
+        You are a top-tier algorithm designed for extracting information in structured
+
+        formats to build a knowledge graph.
+
+
+        In this specific instance, you are given warehouse events and descriptions.
+
+        Your task is to extract information from and construct a knowledge graph.
+
+
+        Try to capture as much information from the text as possible without
+
+        sacrifing accuracy. Do not add any information that is not explicitly
+
+        mentioned in the text
+
+        - **Nodes** represent objects and persons in the warehouse.
+
+        - The aim is to achieve simplicity and clarity in the knowledge graph, making
+        it
+
+        accessible for a vast audience.
+
+        - Add the text itself as the ''document'' property in the Node.
+
+
+        ## 2. Labeling Nodes
+
+        - **Consistency**: Ensure you use available types for node labels.
+
+        Ensure you use basic or elementary types for node labels.
+
+        - For example, when you identify an entity representing a person,
+
+        always label it as **''worker''**. Avoid using more specific terms
+
+        like ''Worker_In_Yellow_Vest'' or ''Worker_Running''. Add ''vest'': ''yellow''
+        and
+
+        ''action'': ''running'' as properties in the node instead
+
+        But ensure that you add a ''description'' of the worker.
+
+
+        - **Node IDs**: Never utilize integers as node IDs. Node IDs should be
+
+        names or human-readable identifiers found in the text.
+
+
+        - **Relationships** represent interactions and relative locations between
+        nodes.
+
+        For instance, a ''worker'' wearing yellow shirt is ''operating'' the red ''forklift''
+
+        ''worker'' and ''forklift'' should be added as nodes and operating should
+        be added as a relationship.
+
+        ''worker'' should have a property ''shirt'' with value ''yellow''.
+
+        ''forklift'' should have a property ''color'' with value ''red''.
+
+        Ensure consistency and generality in relationship types when constructing
+
+        knowledge graphs. Instead of using specific and momentary types
+
+        such as ''FALL DOWN'', use more general and timeless relationship types
+
+        like ''FALL''. Make sure to use general and timeless relationship types!
+
+        ALWAYS add the given start and end timestamp as part of relationship''s properties.
+
+        Convert the timestamps to integers before adding them. USE apt format.
+
+
+        ## 3. Coreference Resolution
+
+        - **Maintain Entity Consistency**: When extracting entities, it''s vital to
+
+        ensure consistency.
+
+        If an entity, such as "John Doe", is mentioned multiple times in the text
+
+        but is referred to by different names or pronouns (e.g., "Joe", "he"),
+
+        always use the most complete identifier for that entity throughout the
+
+        knowledge graph. In this example, use "John Doe" as the entity ID.
+
+        Remember, the knowledge graph should be coherent and easily understandable,
+
+        so maintaining consistency in entity references is crucial.
+
+
+        ## 4. Strict Compliance
+
+        Adhere to the rules strictly. Non-compliance will result in termination.
+
+        '
+      node_properties:
+      - description
+      relationship_properties:
+      - start_timestamp
+      - end_timestamp
+      reranker:
+        base_url: http://$egress.nemo-rerank.address:$egress.nemo-rerank.port/v1
+        model: nvidia/nv-rerankqa-mistral-4b-v3
+      retrieval_prompt: 'Based on the Neo4j graph schema below, write a Cypher query
+        that would answer the user''s question:
+
+        Please be accurate, my life depends on this.
+
+
+        ## RULES:
+
+        - Double check if the query is valid Neo4j cypher query.
+
+        - The nodes with label ''Event'' or ''EventDescription'' contain the event
+        descriptions. Use these nodes to answer generic questions such as ''what is
+        happening?''
+
+        - Remaining nodes represent locations or objects or workers etc.
+
+        - The relationships/edges represent the interactions and relative locations
+        and other events that happened.
+
+        - Each relationship has a ''start_timestamp'' and ''end_timestamp''. Use this
+        property to filter if the Question is based on time.
+
+        - Use ONLY nodes and relationships mentioned in schema.
+
+        - ALWAYS undirected relationships matching.
+
+        - Additionally use the document property of the nodes to answer the question.
+
+        - RETURN JUST THE QUERY, NO FORMATTING.
+
+        - LIMIT to 200
+
+
+        ## EXAMPLE:
+
+        Question:
+
+        Who was talking between <time> and <time>?
+
+        Cypher query:
+
+        MATCH (w:Worker)-[r:TALKING]-()
+
+        where r.timestamp < datetime(''<time>'')  and r.timestamp > datetime(''<time>'')
+
+        return w
+
+
+        ## SCHEMA:
+
+        {schema}
+
+        ###Question: {question}
+
+        ###Cypher query:
+
+        '
+    vector_rag:
+      enable: true
+      qna_prompt: 'You are an assistant for question-answering tasks. Use the following
+        pieces of retrieved context to answer the question. Answer the question in
+        detail.
+
+        '
+  guardrails_config.yaml:
+    instructions:
+    - content: 'Below is a conversation between a bot and a user about the image or
+        video.
+
+        The bot is factual and concise. If the bot does not know the answer to a
+
+        question, it truthfully says it does not know.
+
+        '
+      type: general
+    models:
+    - engine: nim
+      model: $params.llmModel
+      parameters:
+        base_url: http://$egress.llm-openai-api.address:$egress.llm-openai-api.port/v1
+      type: main
+    - engine: nim
+      model: nvidia/llama-3.2-nv-embedqa-1b-v2
+      parameters:
+        base_url: http://$egress.nemo-embed.address:$egress.nemo-embed.port/v1
+      type: embeddings
+    prompts:
+    - messages:
+      - content: '{{ general_instructions }}{% if relevant_chunks != None and relevant_chunks
+          != '''' %}
+
+          This is some relevant context:
+
+          ```markdown
+
+          {{ relevant_chunks }}
+
+          ```{% endif %}
+
+          '
+        type: system
+      - '{{ history | to_chat_messages }}'
+      task: general
+    - messages:
+      - content: '{{ general_instructions }}
+
+
+          Your task is to generate the user intent in a conversation given the last
+          user message similar to the examples below.
+
+          Do not provide any explanations, just output the user intent.
+
+
+          # Examples:
+
+          {{ examples | verbose_v1 }}
+
+          '
+        type: system
+      - '{{ sample_conversation | first_turns(2) | to_messages }}'
+      - '{{ history | colang | to_messages }}'
+      - content: 'Bot thinking: potential user intents are: {{ potential_user_intents
+          }}
+
+          '
+        type: assistant
+      output_parser: verbose_v1
+      task: generate_user_intent
+    - messages:
+      - content: '{{ general_instructions }}
+
+
+          Your task is to generate the next steps in a conversation given the last
+          user message similar to the examples below.
+
+          Do not provide any explanations, just output the user intent and the next
+          steps.
+
+
+          # Examples:
+
+          {{ examples | remove_text_messages | verbose_v1 }}
+
+          '
+        type: system
+      - '{{ sample_conversation | first_turns(2) | to_intent_messages }}'
+      - '{{ history | colang | to_intent_messages }}'
+      output_parser: verbose_v1
+      task: generate_next_steps
+    - messages:
+      - content: '{{ general_instructions }}{% if relevant_chunks != None and relevant_chunks
+          != '''' %}
+
+          This is some relevant context:
+
+          ```markdown
+
+          {{ relevant_chunks }}
+
+          ```{% endif %}
+
+          Your task is to generate the bot message in a conversation given the last
+          user message, user intent and bot intent.
+
+          Similar to the examples below.
+
+          Do not provide any explanations, just output the bot message.
+
+
+          # Examples:
+
+          {{ examples | verbose_v1 }}
+
+          '
+        type: system
+      - '{{ sample_conversation | first_turns(2) | to_intent_messages_2 }}'
+      - '{{ history | colang | to_intent_messages_2 }}'
+      output_parser: verbose_v1
+      task: generate_bot_message
+    - messages:
+      - content: '{{ general_instructions }}
+
+
+          Your task is to generate value for the ${{ var_name }} variable..
+
+          Do not provide any explanations, just output value.
+
+
+          # Examples:
+
+          {{ examples | verbose_v1 }}
+
+          '
+        type: system
+      - '{{ sample_conversation | first_turns(2) | to_messages }}'
+      - '{{ history | colang | to_messages }}'
+      - content: 'Bot thinking: follow the following instructions: {{ instructions
+          }}
+
+          ${{ var_name }} =
+
+          '
+        type: assistant
+      output_parser: verbose_v1
+      task: generate_value
+    rails:
+      input:
+        flows:
+        - self check input
+    sample_conversation: "user \"Hello there!\"\n  express greeting\nbot express greeting\n\
+      \  \"Hello! How can I assist you today?\"\nuser \"What can you do for me?\"\n\
+      \  ask about capabilities\nbot respond about capabilities\n  \"I am an AI assistant\
+      \ here to answer questions about the image or video.\"\n"
+  its.mp4.graph_rag.yaml:
+    aggregation_prompt: 'You are a very reliable Q&A system. User data is stored in
+      a knowledge graph and some documents.\
+
+      Given the user question, some preprocessing is already performed and you are
+      provided with context \
+
+      fetched from the documents and the cypher query along with the \
+
+      cypher query result from the knowledge graph.  Use this information along with
+      \
+
+      the chat history and and try to answer the user question IN DETAIL. Not all
+      sources \
+
+      (context, cypher query, cypher response) may contain the answer.  Use the most
+      relevant \
+
+      source/sources to answer the question but give more weightage to context than
+      to the cypher query \
+
+      and cypher response if there is any conflicting information. When the question
+      about time, give more \
+
+      weightage to the cypher query and cypher response. if it is present otherwise
+      use the context. \
+
+      If answer can''t be provided respond with: \
+
+      ''Sorry, I can\''t answer that\'' and provide a reason. No pre-amble.
+
+      '
+    batch_summaries:
+      enable: false
+      prompt: 'You should summarize the following events of a warehouse in the format
+        start_time:end_time:caption. For start_time and end_time use . to seperate
+        seconds, minutes, hours. If during a time segment only regular activities
+        happen, then ignore them, else note any irregular activities in detail. The
+        output should be bullet points in the format start_time:end_time: detailed_event_description.
+        Don''t return anything else except the bullet points.
+
+        '
+      size: 2
+    chat_history:
+      contextualize_q_prompt: 'Given a chat history and the latest user question which
+        might reference context in the chat history, formulate a standalone question
+        which can be understood without the chat history. Do NOT answer the question,
+        just reformulate it if needed and otherwise return it as is. If no chat history
+        is provided, then return the original question. Do not add any additional
+        context to the question. No pre-amble.
+
+        '
+      enable: false
+    graph_rag:
+      embedding:
+        base_url: http://$egress.nemo-embed.address:$egress.nemo-embed.port/v1
+        model: nvidia/nv-embedqa-e5-v5
+      enable: true
+      extraction_prompt: '# Knowledge Graph Instructions for Llama
+
+        ## 1. Overview
+
+        You are a top-tier algorithm designed for extracting information in structured
+
+        formats to build a knowledge graph.
+
+
+        In this specific instance, you are given traffic events and descriptions.
+
+        Your task is to extract information from and construct a knowledge graph.
+
+
+        Try to capture as much information from the text as possible without
+
+        sacrifing accuracy. Do not add any information that is not explicitly
+
+        mentioned in the text
+
+        - **Nodes** represent objects and vehicles in traffic.
+
+        - The aim is to achieve simplicity and clarity in the knowledge graph, making
+        it
+
+        accessible for a vast audience.
+
+        - Add the text itself as the ''document'' property in the Node.
+
+
+        ## 2. Labeling Nodes
+
+        - **Consistency**: Ensure you use available types for node labels.
+
+        Ensure you use basic or elementary types for node labels.
+
+        - For example, when you identify an entity representing a vehicle,
+
+        always label it as **''vehicle''**. So entities such as car, truck, firetruck,
+        sedan,
+
+        roadster should always be labeled as **''vehicle''**.
+
+        Avoid using more specific terms like ''White_Vehicle'' or ''Speeding_Vehicle''.
+
+        Add ''color'': ''white'' and ''action'': ''speeding'' as properties in the
+        node instead.
+
+        Ensure that you add a ''description'' of the vehicle, person, etc.
+
+        Again, DO NOT ADD NODES SUCH AS ''White_Car'', ''Firetruck_Stationary''. Add
+        these nodes
+
+        as **''vehicle''** nodes. ''White_Car'' should have property ''color'' with
+        value ''white''.
+
+        ''Firetruck_Stationary'' should have property ''action'' with value ''stationary''
+
+        Vehicles such as truck, firetruck, bus, should have the property ''size''
+        with value ''large''.
+
+
+        - **Node IDs**: Never utilize integers as node IDs. Node IDs should be
+
+        names or human-readable identifiers found in the text.
+
+
+        - **Relationships** represent interactions and relative locations between
+        nodes.
+
+        For instance, a ''car'' hit the red ''stop sign''
+
+        ''car'' should be added as ''vehicle'' node and ''stop sign'' should be added
+        as ''stop sign'' node.
+
+        Hit should be added as a relationship between ''vehicle'' and ''stop sign''.
+
+        ''vehicle'' should have a property ''type'' with value ''car''.
+
+        ''stop sign'' should have a property ''color'' with value ''red''.
+
+        Ensure consistency and generality in relationship types when constructing
+
+        knowledge graphs. Instead of using specific and momentary types
+
+        such as ''FALL DOWN'', use more general and timeless relationship types
+
+        like ''FALL''. Make sure to use general and timeless relationship types!
+
+        ALWAYS add the given start and end timestamp as part of relationship''s properties.
+
+        Convert the timestamps to integers before adding them. USE apt format.
+
+
+        ## 3. Coreference Resolution
+
+        - **Maintain Entity Consistency**: When extracting entities, it''s vital to
+
+        ensure consistency.
+
+        If an entity, such as "John Doe", is mentioned multiple times in the text
+
+        but is referred to by different names or pronouns (e.g., "Joe", "he"),
+
+        always use the most complete identifier for that entity throughout the
+
+        knowledge graph. In this example, use "John Doe" as the entity ID.
+
+        Remember, the knowledge graph should be coherent and easily understandable,
+
+        so maintaining consistency in entity references is crucial.
+
+
+        ## 4. Strict Compliance
+
+        Adhere to the rules strictly. Non-compliance will result in termination.
+
+        '
+      node_properties:
+      - description
+      - type
+      - size
+      - color
+      - count
+      relationship_properties:
+      - start_timestamp
+      - end_timestamp
+      reranker:
+        base_url: http://$egress.nemo-rerank.address:$egress.nemo-rerank.port/v1
+        model: nvidia/nv-rerankqa-mistral-4b-v3
+      retrieval_prompt: 'Based on the Neo4j graph schema below, write a Cypher query
+        that would answer the user''s question:
+
+        Please be accurate, my life depends on this.
+
+
+        ## RULES:
+
+        - Double check if the query is valid Neo4j cypher query.
+
+        - The nodes with label ''Event'' or ''EventDescription'' contain the event
+        descriptions. Use these nodes to answer generic questions such as ''what is
+        happening?''
+
+        - Remaining nodes represent locations or objects or workers etc.
+
+        - The relationships/edges represent the interactions and relative locations
+        and other events that happened.
+
+        - Each relationship has a ''start_timestamp'' and ''end_timestamp''. Use this
+        property to filter if the Question is based on time.
+
+        - Use ONLY nodes and relationships mentioned in schema.
+
+        - ALWAYS undirected relationships matching.
+
+        - Additionally use the document property of the nodes to answer the question.
+
+        - RETURN JUST THE QUERY, NO FORMATTING.
+
+        - LIMIT to 200
+
+
+        ## EXAMPLE:
+
+        Question:
+
+        Which vehicle was driving between <time> and <time>?
+
+        Cypher query:
+
+        MATCH (w:Vehicle)-[r:Driving]-()
+
+        where r.timestamp < datetime(''<time>'')  and r.timestamp > datetime(''<time>'')
+
+        return w
+
+
+        ## EXAMPLE:
+
+        Question: How many large vehicles were in the video?
+
+        Cypher query:
+
+        MATCH (v:Vehicle)
+
+        WHERE v.size CONTAINS ''large''
+
+        RETURN count(v) AS large_vehicle_count
+
+
+        ## SCHEMA:
+
+        {schema}
+
+        ###Question: {question}
+
+        ###Cypher query:
+
+
+        allowed_nodes:
+
+        - vehicle
+
+        - intersection
+
+        - stop_sign
+
+        - road
+
+        - pedestrian
+
+        - exits
+
+        - signal
+
+        '
+    vector_rag:
+      enable: true
+      qna_prompt: 'You are an assistant for question-answering tasks. Use the following
+        pieces of retrieved context to answer the question. Answer the question in
+        detail. Include timestamps in the answer.
+
+        '
+  warehouse.mp4.graph_rag.yaml:
+    aggregation_prompt: 'You are a very reliable Q&A system. User data is stored in
+      a knowledge graph and some documents.\
+
+      Given the user question, some preprocessing is already performed and you are
+      provided with context \
+
+      fetched from the documents and the cypher query along with the \
+
+      cypher query result from the knowledge graph.  Use this information along with
+      \
+
+      the chat history and and try to answer the user question IN DETAIL with timestamps.
+      Not all sources \
+
+      (context, cypher query, cypher response) may contain the answer.  Use the most
+      relevant \
+
+      source/sources to answer the question but give more weightage to context than
+      to the cypher query \
+
+      and cypher response if there is any conflicting information. When the question
+      about time, give more \
+
+      weightage to the cypher query and cypher response. if it is present otherwise
+      use the context. \
+
+      If answer can''t be provided respond with: \
+
+      ''Sorry, I can\''t answer that\'' and provide a reason. No pre-amble.
+
+      '
+    batch_summaries:
+      enable: false
+      prompt: 'You should summarize the following events of a warehouse in the format
+        start_time:end_time:caption. For start_time and end_time use . to seperate
+        seconds, minutes, hours. If during a time segment only regular activities
+        happen, then ignore them, else note any irregular activities in detail. The
+        output should be bullet points in the format start_time:end_time: detailed_event_description.
+        Don''t return anything else except the bullet points.
+
+        '
+      size: 2
+    chat_history:
+      contextualize_q_prompt: 'Given a chat history and the latest user question which
+        might reference context in the chat history, formulate a standalone question
+        which can be understood without the chat history. Do NOT answer the question,
+        just reformulate it if needed and otherwise return it as is. If no chat history
+        is provided, then return the original question. Do not add any additional
+        context to the question. No pre-amble.
+
+        '
+      enable: false
+    graph_rag:
+      allowed_nodes:
+      - box
+      - desk
+      - laptop
+      - chair
+      - ground
+      - forklift
+      - worker
+      - shelf
+      - floor
+      - cone
+      - restricted_zone
+      embedding:
+        base_url: http://$egress.nemo-embed.address:$egress.nemo-embed.port/v1
+        model: nvidia/nv-embedqa-e5-v5
+      enable: true
+      extraction_prompt: '# Knowledge Graph Instructions for Llama
+
+        ## 1. Overview
+
+        You are a top-tier algorithm designed for extracting information in structured
+
+        formats to build a knowledge graph.
+
+
+        In this specific instance, you are given warehouse events and descriptions.
+
+        Your task is to extract information from and construct a knowledge graph.
+
+
+        Try to capture as much information from the text as possible without
+
+        sacrifing accuracy. Do not add any information that is not explicitly
+
+        mentioned in the text
+
+        - **Nodes** represent objects and persons in the warehouse.
+
+        - The aim is to achieve simplicity and clarity in the knowledge graph, making
+        it
+
+        accessible for a vast audience.
+
+        - Add the text itself as the ''document'' property in the Node.
+
+
+        ## 2. Labeling Nodes
+
+        - **Consistency**: Ensure you use available types for node labels.
+
+        Ensure you use basic or elementary types for node labels.
+
+        - For example, when you identify an entity representing a person,
+
+        always label it as **''worker''**. Avoid using more specific terms
+
+        like ''Worker_In_Yellow_Vest'' or ''Worker_Running''. Add ''vest'': ''yellow''
+        and
+
+        ''action'': ''running'' as properties in the node instead
+
+        But ensure that you add a ''description'' of the person.
+
+
+        - **Node IDs**: Never utilize integers as node IDs. Node IDs should be
+
+        names or human-readable identifiers found in the text.
+
+
+        - **Relationships** represent interactions and relative locations between
+        nodes.
+
+        For instance, a ''worker'' wearing yellow shirt is ''operating'' the red ''forklift''
+
+        ''worker'' and ''forklift'' should be added as nodes and operating should
+        be added as a relationship.
+
+        ''worker'' should have a property ''shirt'' with value ''yellow''.
+
+        ''forklift'' should have a property ''color'' with value ''red''.
+
+        Ensure consistency and generality in relationship types when constructing
+
+        knowledge graphs. Instead of using specific and momentary types
+
+        such as ''FALL DOWN'', use more general and timeless relationship types
+
+        like ''FALL''. Make sure to use general and timeless relationship types!
+
+        ALWAYS add the given start and end timestamp as part of relationship''s properties.
+
+        Convert the timestamps to integers before adding them. USE apt format.
+
+
+        ## 3. Coreference Resolution
+
+        - **Maintain Entity Consistency**: When extracting entities, it''s vital to
+
+        ensure consistency.
+
+        If an entity, such as ""John Doe"", is mentioned multiple times in the text
+
+        but is referred to by different names or pronouns (e.g., ""Joe"", ""he""),
+
+        always use the most complete identifier for that entity throughout the
+
+        knowledge graph. In this example, use ""John Doe"" as the entity ID.
+
+        Remember, the knowledge graph should be coherent and easily understandable,
+
+        so maintaining consistency in entity references is crucial.
+
+
+        ## 4. Strict Compliance
+
+        Adhere to the rules strictly. Non-compliance will result in termination.
+
+        '
+      node_properties:
+      - description
+      relationship_properties:
+      - start_timestamp
+      - end_timestamp
+      reranker:
+        base_url: http://$egress.nemo-rerank.address:$egress.nemo-rerank.port/v1
+        model: nvidia/nv-rerankqa-mistral-4b-v3
+      retrieval_prompt: 'Based on the Neo4j graph schema below, write a Cypher query
+        that would answer the user''s question:
+
+        Please be accurate, my life depends on this.
+
+
+        ## RULES:
+
+        - Double check if the query is valid Neo4j cypher query.
+
+        - The nodes with label ''Event'' or ''EventDescription'' contain the event
+        descriptions. Use these nodes to answer generic questions such as ''what is
+        happening?''
+
+        - Remaining nodes represent locations or objects or workers etc.
+
+        - The relationships/edges represent the interactions and relative locations
+        and other events that happened.
+
+        - Each relationship has a ''start_timestamp'' and ''end_timestamp''. Use this
+        property to filter if the Question is based on time.
+
+        - Use ONLY nodes and relationships mentioned in schema.
+
+        - ALWAYS undirected relationships matching.
+
+        - Additionally use the document property of the nodes to answer the question.
+
+        - RETURN JUST THE QUERY, NO FORMATTING.
+
+        - LIMIT to 200
+
+
+        ## EXAMPLE:
+
+        Question:
+
+        Who was talking between <time> and <time>?
+
+        Cypher query:
+
+        MATCH (w:Worker)-[r:TALKING]-()
+
+        where r.timestamp < datetime(''<time>'')  and r.timestamp > datetime(''<time>'')
+
+        return w
+
+
+        ## SCHEMA:
+
+        {schema}
+
+        ###Question: {question}
+
+        ###Cypher query:
+
+        '
+    vector_rag:
+      enable: true
+      qna_prompt: 'You are an assistant for question-answering tasks. Use the following
+        pieces of retrieved context to answer the question. Answer the question in
+        detail. Include timestamps in the answer.
+
+        '
+  warehouse_82min.mp4.graph_rag.yaml:
+    aggregation_prompt: 'You are a very reliable Q&A system. User data is stored in
+      a knowledge graph and some documents.\
+
+      Given the user question, some preprocessing is already performed and you are
+      provided with context \
+
+      fetched from the documents and the cypher query along with the \
+
+      cypher query result from the knowledge graph.  Use this information along with
+      \
+
+      the chat history and and try to answer the user question IN DETAIL with timestamps.
+      Not all sources \
+
+      (context, cypher query, cypher response) may contain the answer.  Use the most
+      relevant \
+
+      source/sources to answer the question but give more weightage to context than
+      to the cypher query \
+
+      and cypher response if there is any conflicting information. When the question
+      about time, give more \
+
+      weightage to the cypher query and cypher response. if it is present otherwise
+      use the context. \
+
+      If answer can''t be provided respond with: \
+
+      ''Sorry, I can\''t answer that\'' and provide a reason. No pre-amble.
+
+      '
+    batch_summaries:
+      enable: false
+      prompt: 'You should summarize the following events of a warehouse in the format
+        start_time:end_time:caption. For start_time and end_time use . to seperate
+        seconds, minutes, hours. If during a time segment only regular activities
+        happen, then ignore them, else note any irregular activities in detail. The
+        output should be bullet points in the format start_time:end_time: detailed_event_description.
+        Don''t return anything else except the bullet points.
+
+        '
+      size: 2
+    chat_history:
+      contextualize_q_prompt: 'Given a chat history and the latest user question which
+        might reference context in the chat history, formulate a standalone question
+        which can be understood without the chat history. Do NOT answer the question,
+        just reformulate it if needed and otherwise return it as is. If no chat history
+        is provided, then return the original question. Do not add any additional
+        context to the question. No pre-amble.
+
+        '
+      enable: false
+    graph_rag:
+      allowed_nodes:
+      - box
+      - desk
+      - laptop
+      - chair
+      - ground
+      - forklift
+      - worker
+      - shelf
+      - floor
+      - cone
+      - restricted_zone
+      embedding:
+        base_url: http://$egress.nemo-embed.address:$egress.nemo-embed.port/v1
+        model: nvidia/nv-embedqa-e5-v5
+      enable: true
+      extraction_prompt: '# Knowledge Graph Instructions for Llama
+
+        ## 1. Overview
+
+        You are a top-tier algorithm designed for extracting information in structured
+
+        formats to build a knowledge graph.
+
+
+        In this specific instance, you are given warehouse events and descriptions.
+
+        Your task is to extract information from and construct a knowledge graph.
+
+
+        Try to capture as much information from the text as possible without
+
+        sacrifing accuracy. Do not add any information that is not explicitly
+
+        mentioned in the text
+
+        - **Nodes** represent objects and persons in the warehouse.
+
+        - The aim is to achieve simplicity and clarity in the knowledge graph, making
+        it
+
+        accessible for a vast audience.
+
+        - Add the text itself as the ''document'' property in the Node.
+
+
+        ## 2. Labeling Nodes
+
+        - **Consistency**: Ensure you use available types for node labels.
+
+        Ensure you use basic or elementary types for node labels.
+
+        - For example, when you identify an entity representing a person,
+
+        always label it as **''worker''**. Avoid using more specific terms
+
+        like ''Worker_In_Yellow_Vest'' or ''Worker_Running''. Add ''vest'': ''yellow''
+        and
+
+        ''action'': ''running'' as properties in the node instead
+
+        But ensure that you add a ''description'' of the person.
+
+
+        - **Node IDs**: Never utilize integers as node IDs. Node IDs should be
+
+        names or human-readable identifiers found in the text.
+
+
+        - **Relationships** represent interactions and relative locations between
+        nodes.
+
+        For instance, a ''worker'' wearing yellow shirt is ''operating'' the red ''forklift''
+
+        ''worker'' and ''forklift'' should be added as nodes and operating should
+        be added as a relationship.
+
+        ''worker'' should have a property ''shirt'' with value ''yellow''.
+
+        ''forklift'' should have a property ''color'' with value ''red''.
+
+        Ensure consistency and generality in relationship types when constructing
+
+        knowledge graphs. Instead of using specific and momentary types
+
+        such as ''FALL DOWN'', use more general and timeless relationship types
+
+        like ''FALL''. Make sure to use general and timeless relationship types!
+
+        ALWAYS add the given start and end timestamp as part of relationship''s properties.
+
+        Convert the timestamps to integers before adding them. USE apt format.
+
+
+        ## 3. Coreference Resolution
+
+        - **Maintain Entity Consistency**: When extracting entities, it''s vital to
+
+        ensure consistency.
+
+        If an entity, such as ""John Doe"", is mentioned multiple times in the text
+
+        but is referred to by different names or pronouns (e.g., ""Joe"", ""he""),
+
+        always use the most complete identifier for that entity throughout the
+
+        knowledge graph. In this example, use ""John Doe"" as the entity ID.
+
+        Remember, the knowledge graph should be coherent and easily understandable,
+
+        so maintaining consistency in entity references is crucial.
+
+
+        ## 4. Strict Compliance
+
+        Adhere to the rules strictly. Non-compliance will result in termination.
+
+        '
+      node_properties:
+      - description
+      relationship_properties:
+      - start_timestamp
+      - end_timestamp
+      reranker:
+        base_url: http://$egress.nemo-rerank.address:$egress.nemo-rerank.port/v1
+        model: nvidia/nv-rerankqa-mistral-4b-v3
+      retrieval_prompt: 'Based on the Neo4j graph schema below, write a Cypher query
+        that would answer the user''s question:
+
+        Please be accurate, my life depends on this.
+
+
+        ## RULES:
+
+        - Double check if the query is valid Neo4j cypher query.
+
+        - The nodes with label ''Event'' or ''EventDescription'' contain the event
+        descriptions. Use these nodes to answer generic questions such as ''what is
+        happening?''
+
+        - Remaining nodes represent locations or objects or workers etc.
+
+        - The relationships/edges represent the interactions and relative locations
+        and other events that happened.
+
+        - Each relationship has a ''start_timestamp'' and ''end_timestamp''. Use this
+        property to filter if the Question is based on time.
+
+        - Use ONLY nodes and relationships mentioned in schema.
+
+        - ALWAYS undirected relationships matching.
+
+        - Additionally use the document property of the nodes to answer the question.
+
+        - RETURN JUST THE QUERY, NO FORMATTING.
+
+        - LIMIT to 200
+
+
+        ## EXAMPLE:
+
+        Question:
+
+        Who was talking between <time> and <time>?
+
+        Cypher query:
+
+        MATCH (w:Worker)-[r:TALKING]-()
+
+        where r.timestamp < datetime(''<time>'')  and r.timestamp > datetime(''<time>'')
+
+        return w
+
+
+        ## SCHEMA:
+
+        {schema}
+
+        ###Question: {question}
+
+        ###Cypher query:
+
+        '
+    vector_rag:
+      enable: true
+      qna_prompt: 'You are an assistant for question-answering tasks. Use the following
+        pieces of retrieved context to answer the question. Answer the question in
+        detail. Include timestamps in the answer.
+
+        '
+
