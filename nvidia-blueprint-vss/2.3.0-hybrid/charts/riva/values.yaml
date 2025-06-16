@@ -1,0 +1,118 @@
+# Copyright (c) 2023, NVIDIA CORPORATION.  All rights reserved.
+#
+# NVIDIA CORPORATION and its licensors retain all intellectual property
+# and proprietary rights in and to this software, related documentation
+# and any modifications thereto.  Any use, reproduction, disclosure or
+# distribution of this software and related documentation without an express
+# license agreement from NVIDIA CORPORATION is strictly prohibited.
+
+Component:
+  app-version: 2.3.0
+  description: nvidia/parakeet-ctc-0_6b-asr NIM microservice
+  helmUrlLocationPath: https://helm.ngc.nvidia.com/myorg/myteam/charts
+  name: riva
+  version: 2.3.0
+affinity: {}
+applicationSpecs:
+  riva-deployment:
+    apptype: stateless
+    containers:
+      riva-container:
+        env:
+        - name: NGC_API_KEY
+          valueFrom:
+            secretKeyRef:
+              key: NGC_API_KEY
+              name: ngc-api-key-secret
+        - name: NIM_HTTP_API_PORT
+          value: '9000'
+        - name: NIM_GRPC_API_PORT
+          value: '50051'
+        - name: NIM_TAGS_SELECTOR
+          value: name=parakeet-0-6b-ctc-riva-en-us,mode=all
+        image:
+          repository: nvcr.io/nim/nvidia/parakeet-0-6b-ctc-en-us
+          tag: 2.0.0
+        livenessProbe:
+          httpGet:
+            path: /v1/health/live
+            port: http-api
+        ports:
+        - containerPort: 9000
+          name: http-api
+        - containerPort: 50051
+          name: grpc-api
+        readinessProbe:
+          httpGet:
+            path: /v1/health/ready
+            port: http-api
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          limits:
+            memory: 8Gi
+            nvidia.com/gpu: 1
+        startupProbe:
+          failureThreshold: 30
+          httpGet:
+            path: /v1/health/ready
+            port: http-api
+          periodSeconds: 10
+    restartPolicy: Always
+    securityContext:
+      fsGroup: 1000
+      runAsGroup: 1000
+      runAsUser: 1000
+    services:
+      riva-service:
+        fullNameOverride: true
+        ports:
+        - name: http-api
+          port: 9000
+          targetPort: 9000
+        - name: grpc-api
+          port: 50051
+          targetPort: 50051
+defaultVolumeMounts:
+- mountPath: /opt/workload-config
+  name: workload-cm-volume
+- mountPath: /opt/configs
+  name: configs-volume
+- mountPath: /opt/scripts
+  name: scripts-cm-volume
+defaultVolumes:
+- configMap:
+    name: riva-workload-cm
+  name: workload-cm-volume
+- configMap:
+    name: riva-configs-cm
+  name: configs-volume
+- configMap:
+    name: riva-scripts-cm
+  name: scripts-cm-volume
+egress: {}
+externalFiles: []
+image:
+  pullPolicy: IfNotPresent
+imagePullSecrets: []
+ingress:
+  enabled: false
+metrics: {}
+nodeSelector: {}
+podAnnotations: {}
+podSecurityContext: {}
+replicaCount: 1
+resources: {}
+securityContext: {}
+storageClaims: {}
+tolerations: []
+workloadSpecs:
+  dummy: {}
+
+
+
+configs:
+  config.yaml:
+    SampleConfig:
+      sampleValue: 0
+

@@ -1,0 +1,40 @@
+{{/*
+ Copyright (c) 2023, NVIDIA CORPORATION.  All rights reserved.
+
+ NVIDIA CORPORATION and its licensors retain all intellectual property
+ and proprietary rights in and to this software, related documentation
+ and any modifications thereto.  Any use, reproduction, disclosure or
+ distribution of this software and related documentation without an express
+ license agreement from NVIDIA CORPORATION is strictly prohibited.
+*/}}
+
+
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ $.Chart.Name }}-configs-cm
+  {{- if .Values.namespace }}
+  namespace: {{ .Values.namespace }}
+  {{- end }}
+  labels:
+{{ include "hb.labels.standard" . | indent 4 }}
+{{- include "std-helm.labels" $ | nindent 4 }}
+data:
+  graph_rag_config.yaml: |
+    {{- index .Values.configs "graph_rag_config.yaml" | toYaml | nindent 4 }}
+  its.mp4.graph_rag.yaml: |
+    {{- index .Values.configs "its.mp4.graph_rag.yaml" | toYaml | nindent 4 }}
+  ca_rag_config.yaml: |
+    {{- index .Values.configs "ca_rag_config.yaml" | toYaml | nindent 4 }}
+  bridge.mp4.graph_rag.yaml: |
+    {{- index .Values.configs "bridge.mp4.graph_rag.yaml" | toYaml | nindent 4 }}
+  config.yaml: |
+    {{- index .Values.configs "config.yaml" | toYaml | nindent 4 }}
+  guardrails_config.yaml: |
+    {{- index .Values.configs "guardrails_config.yaml" | toYaml | nindent 4 }}
+  warehouse_82min.mp4.graph_rag.yaml: |
+    {{- index .Values.configs "warehouse_82min.mp4.graph_rag.yaml" | toYaml | nindent 4 }}
+  cv_pipeline_tracker_config.yml: |
+    {{- index .Values.configs "cv_pipeline_tracker_config.yml" | toYaml | nindent 4 }}
+  warehouse.mp4.graph_rag.yaml: |
+    {{- index .Values.configs "warehouse.mp4.graph_rag.yaml" | toYaml | nindent 4 }}
