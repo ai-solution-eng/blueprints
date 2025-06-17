@@ -19,23 +19,22 @@ This Helm chart deploys the [NVIDIA Enterprise RAG Blueprint](https://build.nvid
 
 
 ## Configuration
-1. Create secrets:
-    - Setup required environment variables
-        ```
-        export NAMESPACE='nv-nvidia-blueprint-rag'
-        export NGC_API_KEY=<ngc-api-key-to-pull-images>
-        export NVIDIA_API_KEY=<nvidia-api-key-to-use-nvidia-api>
-        ```
+- Setup required environment variables
+    ```
+    export NAMESPACE='nv-nvidia-blueprint-rag'
+    export NGC_API_KEY=<ngc-api-key-to-pull-images>
+    export NVIDIA_API_KEY=<nvidia-api-key-to-use-nvidia-api>
+    ```
 
-    - Create namespace (if not already created)
-        ```
-        kubectl create namespace $NAMESPACE
-        ```
-    - Create secrets
-        ```
-        kubectl create secret docker-registry ngc-secret --docker-server=nvcr.io --docker-username='$oauthtoken' --docker-password=$NGC_API_KEY -n $NAMESPACE
-        kubectl create secret generic ngc-api --from-literal=NGC_API_KEY=$NVIDIA_API_KEY --from-literal=NGC_CLI_API_KEY=$NVIDIA_API_KEY -n $NAMESPACE
-        ```
+- Create namespace (if not already created)
+    ```
+    kubectl create namespace $NAMESPACE
+    ```
+- Create secrets
+    ```
+    kubectl create secret docker-registry ngc-secret --docker-server=nvcr.io --docker-username='$oauthtoken' --docker-password=$NGC_API_KEY -n $NAMESPACE
+    kubectl create secret generic ngc-api --from-literal=NGC_API_KEY=$NVIDIA_API_KEY --from-literal=NGC_CLI_API_KEY=$NVIDIA_API_KEY -n $NAMESPACE
+    ```
 
 ## Import Framework
 1. Log in to the HPE AI Essentials web interface.
