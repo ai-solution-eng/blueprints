@@ -1,0 +1,50 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "nim-vlm.fullname" . }}-test-nonstream-detection-only"
+  labels:
+    {{- include "nim-vlm.labels" . | nindent 4 }}
+    sidecar.istio.io/inject: "false"
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: curl
+      image: curlimages/curl:8.6.0
+      command: ['curl']
+      args:
+        - -X
+        - "POST"
+        - 'http://{{ .Values.service.name | default (include "nim-vlm.fullname" .) }}:{{ .Values.service.openai_port | default .Values.service.openaiPort }}/v1/chat/completions'
+        - -H
+        - 'accept: application/json'
+        - -H
+        - 'Content-Type: application/json'
+        - --fail-with-body
+        - -d
+        - |
+            {
+              "model": "{{ .Values.model.name }}",
+              "tools": [{ "type": "function", "function": { "name": "detection_only" }}],
+              "messages": [
+                {
+                  "role": "user",
+                  "content": [
+                    {
+                      "type": "image_url",
+                      "image_url":
+                        {
+                          "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg"
+                        }
+                    }
+                  ]
+                }
+              ],
+              "temperature": 0.2,
+              "top_p": 0.7,
+              "max_tokens": 256,
+              "stream": false,
+              "frequency_penalty": 0.0
+            }
+  restartPolicy: Never

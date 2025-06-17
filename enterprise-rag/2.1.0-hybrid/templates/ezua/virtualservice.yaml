@@ -1,0 +1,22 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: {{ include "frontend.fullname" (index .Subcharts "frontend") }}-vs
+  namespace: {{ .Release.Namespace }}
+spec:
+  gateways:
+  - {{ .Values.ezua.virtualService.istioGateway | required ".Values.ezua.virtualService.istioGateway is required !\n" }}
+  hosts:
+  - {{ .Values.ezua.virtualService.endpoint | required ".Values.ezua.virtualService.endpoint is required !\n" }}
+  http:
+    - match:
+        - uri:
+            prefix: /
+      rewrite:
+        uri: /
+
+      route:
+      - destination:
+          host: {{ include "frontend.fullname" (index .Subcharts "frontend") }}.{{ .Release.Namespace }}.svc.cluster.local
+          port:
+            number: {{ index .Values "frontend"  "service" "port" }}
