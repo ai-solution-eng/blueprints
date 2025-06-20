@@ -36,4 +36,4 @@ dependencies:
 description: An end to end Helm chart for the NVIDIA RAG Blueprint
 name: nvidia-blueprint-rag
 type: application
-version: 2.1.6
+version: 2.1.7
