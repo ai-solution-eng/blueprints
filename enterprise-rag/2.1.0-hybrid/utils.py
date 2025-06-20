@@ -271,9 +271,6 @@ def create_collections(collection_names: List[str], vdb_endpoint: str, dimension
         dict: Response with creation status.
     """
     config = get_config()
-
-    # Overwite dimension with embedding dimension from values.yaml
-    dimension = os.environ['APP_EMBEDDINGS_DIMENSIONS']
     
     try:
         if not len(collection_names):
@@ -438,12 +435,9 @@ def get_llm(**kwargs) -> LLM | SimpleChatModel:
     # Sanitize the URL
     url = sanitize_nim_url(kwargs.get('llm_endpoint', ""), kwargs.get('model'), "llm")
 
-    # Set API_KEY
-    api_key = os.environ['LLM_API_KEY']
-
     # Replace model name if environment variable exists
-    if os.environ['LLM_MODEL_NAME']:
-        model = os.environ['LLM_MODEL_NAME']
+    if os.environ.get('LLM_MODEL_NAME'):
+        model = os.environ.get('LLM_MODEL_NAME')
 
     # Check if guardrails are enabled
     enable_guardrails = os.getenv("ENABLE_GUARDRAILS", "False").lower() == "true" and kwargs.get('enable_guardrails', False) == True
@@ -486,6 +480,10 @@ def get_llm(**kwargs) -> LLM | SimpleChatModel:
         if url:
             logger.debug(f"Length of llm endpoint url string {url}")
             logger.info("Using llm model %s hosted at %s", kwargs.get('model'), url)
+            
+            # Set API_KEY
+            api_key = os.environ.get('LLM_API_KEY')
+            
             return ChatNVIDIA(base_url=url,
                               model=kwargs.get('model'),
                               api_key=api_key,
@@ -510,13 +508,6 @@ def get_embedding_model(model: str, url: str) -> Embeddings:
     if torch.cuda.is_available():
         model_kwargs["device"] = "cuda:0"
 
-    # Set API_KEY
-    api_key = os.environ['EMBEDDING_API_KEY']
-
-    # Replace model name if environment variable exists
-    if os.environ['EMBEDDING_MODEL_NAME']:
-        model = os.environ['EMBEDDING_MODEL_NAME']
-
     encode_kwargs = {"normalize_embeddings": False}
     settings = get_config()
 
@@ -540,6 +531,10 @@ def get_embedding_model(model: str, url: str) -> Embeddings:
             logger.info("Using embedding model %s hosted at %s",
                         model,
                         url)
+
+            # Set API_KEY
+            api_key = os.environ.get('EMBEDDING_API_KEY')
+
             return NVIDIAEmbeddings(base_url=url,
                                     api_key=api_key,
                                     model=model,
@@ -564,23 +559,20 @@ def _get_ranking_model(model="", url="", top_n=4) -> BaseDocumentCompressor:
 
     # Sanitize the URL
     url = sanitize_nim_url(url, model, "ranking")
-
-    # Set API_KEY
-    api_key = os.environ['RANKING_API_KEY']
-
-    # Replace model name if environment variable exists
-    if os.environ['RANKING_MODEL_NAME']:
-        model = os.environ['RANKING_MODEL_NAME']
-
+    
     try:
         if settings.ranking.model_engine == "nvidia-ai-endpoints":
             if url:
                 logger.info("Using ranking model hosted at %s", url)
+                
+                # Set API_KEY
+                api_key = os.environ.get('RANKING_API_KEY')
+
                 return NVIDIARerank(base_url=url,
                                     api_key=api_key,
                                     top_n=top_n,
                                     truncate="END")
-
+                
             if model:
                 logger.info("Using ranking model %s hosted at api catalog", model)
                 return NVIDIARerank(model=model, top_n=top_n, truncate="END")
