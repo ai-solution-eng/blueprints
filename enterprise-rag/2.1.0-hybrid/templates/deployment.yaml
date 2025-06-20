@@ -22,15 +22,13 @@ spec:
         - name: rag-server
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+          - -c
+          - apt install wget && wget https://raw.githubusercontent.com/ai-solution-eng/blueprints/refs/heads/main/enterprise-rag/2.1.0-hybrid/utils.py
+            /workspace/src/utils.py && uvicorn
+            src.server:app --port 8081 --host 0.0.0.0 --workers {{ .Values.server.workers }}
           command:
-          - "uvicorn"
-          - "src.server:app"
-          - "--port"
-          - "8081"
-          - "--host"
-          - "0.0.0.0"
-          - "--workers"
-          - "{{ .Values.server.workers }}"
+          - /bin/sh
           ports:
             - containerPort: 8081
           {{ if .Values.envVars }}

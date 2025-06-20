@@ -484,6 +484,7 @@ def get_llm(**kwargs) -> LLM | SimpleChatModel:
             logger.info("Using llm model %s hosted at %s", kwargs.get('model'), url)
             return ChatNVIDIA(base_url=url,
                               model=kwargs.get('model'),
+                              api_key=api_key,
                               temperature=kwargs.get('temperature', None),
                               top_p=kwargs.get('top_p', None),
                               max_tokens=kwargs.get('max_tokens', None))
