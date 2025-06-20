@@ -782,7 +782,7 @@ def get_nv_ingest_ingestor(
 
     # Add Embedding task
     if ENABLE_NV_INGEST_VDB_UPLOAD:
-        ingestor = ingestor.embed()
+        ingestor = ingestor.embed(api_key=os.environ["EMBEDDING_API_KEY"])
 
     # Add Vector-DB upload task
     if ENABLE_NV_INGEST_VDB_UPLOAD:
