@@ -66,7 +66,6 @@ envVars:
   # URL on which LLM model is hosted. If "", Nvidia hosted API is used
   #APP_LLM_SERVERURL: "nim-llm:8000"
   APP_LLM_SERVERURL: ""
-  LLM_MODEL_NAME: ""
   LLM_API_KEY: ""
 
   ##===Query Rewriter Model specific configurations===
@@ -77,17 +76,16 @@ envVars:
 
   ##===Embedding Model specific configurations===
   # URL on which embedding model is hosted. If "", Nvidia hosted API is used
-  APP_EMBEDDINGS_SERVERURL: "nemo-retriever-embedding-ms:8000"
-  APP_EMBEDDINGS_MODELNAME: "nvidia/llama-3.2-nv-embedqa-1b-v2"
-  EMBEDDING_MODEL_NAME: ""
-  EMBEDDING_API_KEY: ""
+  #APP_EMBEDDINGS_SERVERURL: "nemo-retriever-embedding-ms:8000" # Local NIM deployment
+  APP_EMBEDDINGS_SERVERURL: "<UPDATE: EMBEDDING ENDPOINT>/v1"
+  APP_EMBEDDINGS_MODELNAME: "<UPDATE: EMBEDDING MODEL NAME>"
+  EMBEDDING_API_KEY: "<UPDATE: EMBEDDING API KEY>"
 
   ##===Reranking Model specific configurations===
   # URL on which ranking model is hosted. If "", Nvidia hosted API is used
-  APP_RANKING_SERVERURL: "nemo-retriever-reranking-ms:8000"
+  APP_RANKING_SERVERURL: ""
   APP_RANKING_MODELNAME: "nvidia/llama-3.2-nv-rerankqa-1b-v2"
   ENABLE_RERANKER: "True"
-  RANKING_MODEL_NAME: ""
   RANKING_API_KEY: ""
 
   # === Text Splitter ===
@@ -174,9 +172,11 @@ ingestor-server:
     MINIO_SECRETKEY: "minioadmin"
 
     # === Embeddings Configurations ===
-    APP_EMBEDDINGS_SERVERURL: "nemo-retriever-embedding-ms:8000"
-    APP_EMBEDDINGS_MODELNAME: "nvidia/llama-3.2-nv-embedqa-1b-v2"
-    APP_EMBEDDINGS_DIMENSIONS: "2048"
+    #APP_EMBEDDINGS_SERVERURL: "nemo-retriever-embedding-ms:8000" # For local NIM
+    #APP_EMBEDDINGS_SERVERURL: "" # For NVIDIA API Endpoint
+    APP_EMBEDDINGS_SERVERURL: "<UPDATE: EMBEDDING URL>/v1"
+    APP_EMBEDDINGS_MODELNAME: "<UPDATE: EMBEDDING MODEL NAME>"
+    APP_EMBEDDINGS_DIMENSIONS: "<UPDATE: EMBEDDINGs DIMENSION>" # Depends on Embedding model
 
     # === NV-Ingest Configurations ===
     APP_NVINGEST_MESSAGECLIENTHOSTNAME: "rag-nv-ingest"
@@ -241,7 +241,10 @@ ingestor-server:
       REDIS_MORPHEUS_TASK_QUEUE: morpheus_task_queue
       NV_INGEST_DEFAULT_TIMEOUT_MS: "1234"
       MAX_INGEST_PROCESS_WORKERS: 16
-      EMBEDDING_NIM_ENDPOINT: "http://nemo-retriever-embedding-ms:8000/v1"
+      #EMBEDDING_NIM_ENDPOINT: "http://nemo-retriever-embedding-ms:8000/v1"
+      EMBEDDING_NIM_ENDPOINT: "<UPDATE: EMBEDDING ENDPOINT>/v1"
+      NVIDIA_BUILD_API_KEY: "<UPDATE: EMBEDDING API KEY>" # Temporary until NVIDIA enables model specific API Keys
+      EMBEDDING_NIM_MODEL_NAME: "<UPDATE: EMBEDDING MODEL>"
       MESSAGE_CLIENT_HOST: "rag-redis-master"
       MESSAGE_CLIENT_PORT: 6379
       MESSAGE_CLIENT_TYPE: "redis"
@@ -305,6 +308,10 @@ ingestor-server:
     milvus:
 
       fullnameOverride: "milvus"
+      standalone:
+        resources:
+          limits:
+            nvidia.com/gpu: 0
 
     otelDeployed: false
     zipkinDeployed: false
@@ -364,7 +371,7 @@ nim-llm:
 
 
 nvidia-nim-llama-32-nv-embedqa-1b-v2:
-  enabled: true
+  enabled: false
   service:
     name: "nemo-retriever-embedding-ms"
   image:
@@ -383,7 +390,7 @@ nvidia-nim-llama-32-nv-embedqa-1b-v2:
     ngcAPIKey: ""
 
 text-reranking-nim:
-  enabled: true
+  enabled: false
   service:
     name: "nemo-retriever-reranking-ms"
   image:
@@ -515,8 +522,7 @@ frontend:
     port: 3000
   envVars:
     - name: NEXT_PUBLIC_MODEL_NAME
-      #value: "nvidia/llama-3.3-nemotron-super-49b-v1"
-      value: "meta/llama-3.1-8b-instruct"
+      value: "nvidia/llama-3.3-nemotron-super-49b-v1"
     - name: NEXT_PUBLIC_EMBEDDING_MODEL
       value: "nvidia/llama-3.2-nv-embedqa-1b-v2"
     - name: NEXT_PUBLIC_RERANKER_MODEL

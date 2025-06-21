@@ -26,7 +26,7 @@ spec:
           - -c
           - apt install wget -y && wget https://raw.githubusercontent.com/ai-solution-eng/blueprints/refs/heads/main/enterprise-rag/2.1.0-hybrid/utils.py
             -O /workspace/src/utils.py && uvicorn src.server:app --port 8081 --host
-            0.0.0.0 {{ .Values.server.workers }}
+            0.0.0.0 --workers {{ .Values.server.workers }}
           command:
           - /bin/sh
           ports:

@@ -459,7 +459,8 @@ minio:
   name: minio
   mode: distributed
   image:
-    tag: "RELEASE.2023-03-20T20-16-18Z"
+    #tag: "RELEASE.2023-03-20T20-16-18Z"
+    tag: "RELEASE.2025-05-24T17-08-30Z"
     pullPolicy: IfNotPresent
   accessKey: minioadmin
   secretKey: minioadmin
