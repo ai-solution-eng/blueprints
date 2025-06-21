@@ -271,6 +271,9 @@ def create_collections(collection_names: List[str], vdb_endpoint: str, dimension
         dict: Response with creation status.
     """
     config = get_config()
+
+    # Overwite dimension with embedding dimension from values.yaml
+    dimension = os.environ.get('APP_EMBEDDINGS_DIMENSIONS')
     
     try:
         if not len(collection_names):
