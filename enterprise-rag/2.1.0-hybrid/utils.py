@@ -438,10 +438,6 @@ def get_llm(**kwargs) -> LLM | SimpleChatModel:
     # Sanitize the URL
     url = sanitize_nim_url(kwargs.get('llm_endpoint', ""), kwargs.get('model'), "llm")
 
-    # Replace model name if environment variable exists
-    if os.environ.get('LLM_MODEL_NAME'):
-        model = os.environ.get('LLM_MODEL_NAME')
-
     # Check if guardrails are enabled
     enable_guardrails = os.getenv("ENABLE_GUARDRAILS", "False").lower() == "true" and kwargs.get('enable_guardrails', False) == True
 
@@ -538,6 +534,9 @@ def get_embedding_model(model: str, url: str) -> Embeddings:
             # Set API_KEY
             api_key = os.environ.get('EMBEDDING_API_KEY')
 
+            # Set Embedding model
+            model = os.environ.get('APP_EMBEDDINGS_MODELNAME')
+            
             return NVIDIAEmbeddings(base_url=url,
                                     api_key=api_key,
                                     model=model,
