@@ -22,15 +22,11 @@ spec:
         - name: ingestor-server
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+          - -c
+          - sed -i "s|int = 2048|int = os.getenv(\"APP_EMBEDDINGS_DIMENSIONS\")|" /workspace/src/ingestor_server/server.py && uvicorn src.ingestor_server.server:app --port 8082 --host 0.0.0.0 --workers {{ .Values.server.workers }}
           command:
-          - "uvicorn"
-          - "src.ingestor_server.server:app"
-          - "--port"
-          - "8082"
-          - "--host"
-          - "0.0.0.0"
-          - "--workers"
-          - "{{ .Values.server.workers }}"
+          - /bin/sh
           ports:
             - containerPort: 8082
           {{ if .Values.envVars }}
