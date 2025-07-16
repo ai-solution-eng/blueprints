@@ -4,7 +4,7 @@
 This Helm chart deploys the [NVIDIA Enterprise RAG Blueprint](https://build.nvidia.com/nvidia/build-an-enterprise-rag-pipeline) and its associated services on HPE Private Cloud AI (PCAI) environments.
 
 ## Demos
-* Demo Video (To be uploaded)
+[![Enterprise-RAG-demo-video](enterprise-rag.jpg)](https://storage.googleapis.com/ai-solution-engineering-videos/public/Enterprise-RAG-Blueprint-Demo.mp4)
 
 ## Prerequisites
 1. Access to an a PCAI cluster
