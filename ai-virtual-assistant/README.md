@@ -3,7 +3,7 @@
 This Helm chart deploys the [Nvidia AI Virtual Assistant](https://github.com/NVIDIA-AI-Blueprints/ai-virtual-assistant) and its associated services on HPE PCAI environments.
 
 # Demo Video
-https://www.youtube.com/watch?v=CkfxdU_EK5M
+[![AI-virtual-assistant-demo-video](aiva-logo.png)](https://www.youtube.com/watch?v=CkfxdU_EK5M)
 
 ## Prerequisites
 
