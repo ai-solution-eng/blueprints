@@ -2,7 +2,7 @@
 This Helm chart deploys the NVIDIA Video Search and Summarization Agent Blueprint https://github.com/NVIDIA-AI-Blueprints/video-search-and-summarization and its associated services on HPE Private Cloud AI (PCAI) environments.
 
 ## Demo Video
-[![VSS-demo-video](video-search-and-summarization.jpg)](https://storage.googleapis.com/ai-solution-engineering-videos/public/Enterprise-RAG-Blueprint-Demo.mp4](https://storage.googleapis.com/ai-solution-engineering-videos/public/NVIDIA-VSS-demo.mp4)
+[![VSS-demo-video](video-search-and-summarization.jpg)](https://storage.googleapis.com/ai-solution-engineering-videos/public/NVIDIA-VSS-demo.mp4)
 
 
 ## Prerequisites
