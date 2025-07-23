@@ -1,4 +1,4 @@
-# NVIDIA Video Search and Summarization Agent
+# NVIDIA Enterprise RAG
 This Helm chart deploys the [NVIDIA Enterprise RAG Blueprint](https://build.nvidia.com/nvidia/build-an-enterprise-rag-pipeline) and its associated services on HPE Private Cloud AI (PCAI) environments.
 
 ## Demo Video
