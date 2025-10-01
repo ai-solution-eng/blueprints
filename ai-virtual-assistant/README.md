@@ -1,6 +1,10 @@
 # AI Virtual Assistant Helm Chart
-
 This Helm chart deploys the [Nvidia AI Virtual Assistant](https://github.com/NVIDIA-AI-Blueprints/ai-virtual-assistant) and its associated services on HPE PCAI environments.
+
+| Owner                       | Name                              | Email                                     |
+| ----------------------------|-----------------------------------|-------------------------------------------|
+| Use Case Owner              | Andrew Mendez                     | andrew.mendez@hpe.com                     |
+| PCAI Deployment Owner       | Andrew Mendez                     | andrew.mendez@hpe.com                     |
 
 # Demo Video
 [![AI-virtual-assistant-demo-video](aiva-logo.png)](https://www.youtube.com/watch?v=CkfxdU_EK5M)
