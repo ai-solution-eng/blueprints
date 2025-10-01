@@ -1,6 +1,11 @@
 # NVIDIA Video Search and Summarization Agent
 This Helm chart deploys the NVIDIA Video Search and Summarization Agent Blueprint https://github.com/NVIDIA-AI-Blueprints/video-search-and-summarization and its associated services on HPE Private Cloud AI (PCAI) environments.
 
+| Owner                       | Name                              | Email                                     |
+| ----------------------------|-----------------------------------|-------------------------------------------|
+| Use Case Owner              | Tanguy Pomas                      | tanguy.pomas@hpe.com                      |
+| PCAI Deployment Owner       | Tanguy Pomas                      | tanguy.pomas@hpe.com                      |
+
 ## Demo Video
 [![VSS-demo-video](video-search-and-summarization.jpg)](https://storage.googleapis.com/ai-solution-engineering-videos/public/NVIDIA-VSS-demo.mp4)
 
