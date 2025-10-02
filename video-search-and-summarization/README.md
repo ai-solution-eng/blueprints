@@ -13,9 +13,8 @@ This Helm chart deploys the NVIDIA Video Search and Summarization Agent Blueprin
 ## Prerequisites
 1. Access to an a PCAI cluster
 2. Administrative privileges to import custom frameworks
-3. NGC API key (to access container images)
-4. NVIDIA API key (to access NVIDIA API endpoints)
-5. Hardware requirements
+3. NGC API key (to access both container images and NVIDIA API endpoints)
+4. Hardware requirements
 
     | Deployment                    | GPU Requirements  | Details                                                               |
     |-------------------------------|-------------------|-----------------------------------------------------------------------|
@@ -25,8 +24,7 @@ This Helm chart deploys the NVIDIA Video Search and Summarization Agent Blueprin
 - Setup required environment variables
     ```
     export NAMESPACE=<namespace-to-deploy-to>
-    export NGC_API_KEY=<ngc-api-key-to-pull-images>
-    export NVIDIA_API_KEY=<nvidia-api-key-to-use-nvidia-api>
+    export NGC_API_KEY=<your-ngc-api-key>
     export NEO4JUSERNAME=neo4j
     export NEO4JPASSWORD=password
     ```
@@ -36,8 +34,8 @@ This Helm chart deploys the NVIDIA Video Search and Summarization Agent Blueprin
     ```
 - Create secrets
     ```
-    kubectl create secret generic ngc-docker-reg-secret --from-literal=NGC_API_KEY=$NGC_API_KEY -n $NAMESPACE
-    kubectl create secret generic nvidia-api-key-secret --from-literal=NVIDIA_API_KEY=$NVIDIA_API_KEY -n $NAMESPACE
+    kubectl create secret docker-registry ngc-docker-reg-secret --docker-server=nvcr.io --docker-username='$oauthtoken' --docker-password=$NGC_API_KEY -n $NAMESPACE
+    kubectl create secret generic ngc-api-key-secret --from-literal=NGC_API_KEY=$NGC_API_KEY -n $NAMESPACE
     kubectl create secret generic graph-db-creds-secret --from-literal=username=$NEO4JUSERNAME --from-literal=password=$NEO4JPASSWORD -n $NAMESPACE
     ```
 
