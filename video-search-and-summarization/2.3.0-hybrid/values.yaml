@@ -41,9 +41,9 @@ vss:
           - name: MILVUS_DB_PORT
             value: '19530'
           - name: VLM_MODEL_TO_USE
-            value: vila-1.5
+            value: nvila
           - name: MODEL_PATH
-            value: ngc:nim/nvidia/vila-1.5-40b:vila-yi-34b-siglip-stage3_1003_video_v8
+            value: ngc:nvidia/tao/nvila-highres:nvila-lite-15b-highres-lita
           - name: DISABLE_GUARDRAILS
             value: 'false'
           - name: OPENAI_API_KEY_NAME
@@ -89,8 +89,8 @@ vss:
           - name: NVIDIA_API_KEY
             valueFrom:
               secretKeyRef:
-                name: nvidia-api-key-secret
-                key: NVIDIA_API_KEY
+                name: ngc-api-key-secret
+                key: NGC_API_KEY
           resources:
             requests:
               cpu: "2"
