@@ -1,5 +1,7 @@
 # WIP AI-Q Agent for Enterprise Research Helm Chart
 
+*** This is work in progress!!!! ***
+
 This Helm chart deploys the [Nvidia AI-Q Agent for Enterprise Research](https://github.com/NVIDIA-AI-Blueprints/aiq-research-assistant) and its associated services on HPE PCAI environments.
 
 # Demo Video
@@ -10,6 +12,7 @@ In Progress
 1. Access to an a PCAI cluster
 2. Administrative privileges to import custom frameworks
 3. NGC API key (to access container images)
+4. Enterprise RAG Blueprint deployed (insert link here)
 
 ### LLM Configuration
 
