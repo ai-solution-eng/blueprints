@@ -1,8 +1,6 @@
 apiVersion: v2
 dependencies:
-  - name: nginx
-    repository: file://charts/nginx
-    version: 0.1.0
+
 
   - condition: nim-llm.enabled
     name: nim-llm
