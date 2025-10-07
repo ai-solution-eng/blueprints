@@ -1,4 +1,12 @@
 # ------------------------------------------------------------
+# The following values are for the link on the AIE UI.
+# ------------------------------------------------------------
+ezua:
+  virtualService:
+    endpoint: "ai-q.${DOMAIN_NAME}"
+    istioGateway: "istio-system/ezaf-gateway"
+
+# ------------------------------------------------------------
 # The following values are for the AIQ AIRA backend service.
 # ------------------------------------------------------------
 
