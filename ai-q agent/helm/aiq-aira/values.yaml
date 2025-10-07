@@ -45,16 +45,16 @@ config:
   nemotron_api_key: "not-needed" # not needed as we use the nemotron service from the RAG deployment which does not require an API key
   nemotron_model_name: "nvidia/llama-3.3-nemotron-super-49b-v1"
   nemotron_temperature: "0.5"
-  nemotron_base_url: "http://nim-llm.rag.svc.cluster.local:8000/v1" # provided by the RAG deployment 
+  nemotron_base_url: "http://nim-llm.nv-nvidia-blueprint-rag.svc.cluster.local:8000/v1" # provided by the RAG deployment 
   nemotron_max_tokens: "5000"
   nemotron_stream: "true"
   # Enter your Tavily API key here to enable web search
   tavily_api_key: "" #UPDATE THIS
   # Enter the IP address of the RAG services
-  rag_ingest_url: "http://ingestor-server.rag.svc.cluster.local:8082" # provided by the RAG deployment 
-  rag_url: "http://rag-server.rag.svc.cluster.local:8081" # provided by the RAG deployment 
+  rag_ingest_url: "http://ingestor-server.nv-nvidia-blueprint-rag.svc.cluster.local:8082" # provided by the RAG deployment 
+  rag_url: "http://rag-server.nv-nvidia-blueprint-rag.svc.cluster.local:8081" # provided by the RAG deployment 
   rag_api_key: "" #Typically not required
-  milvus_host: "milvus.rag.svc.cluster.local" # provided by the RAG deployment 
+  milvus_host: "milvus.nv-nvidia-blueprint-rag.svc.cluster.local" # provided by the RAG deployment 
   milvus_port: "19530"
 
 # Do not update this command. It is the default command to launch the AI-Q backend service.
