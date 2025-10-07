@@ -63,7 +63,7 @@ In Progress
     
     
 **Framework Values:**
- Configure the override values file of your application by using the Helm Values (YAML) box. This is where you will need to supply the items listed above (NGC key, MLIS endpoint and token, etc):
+ Configure the override values file of your application by using the Helm Values (YAML) box. You will need to doublecheck the services referring to the ones deployed with your Enterprise RAG blueprint. To identify those sections search for "nv-nvidia-blueprint-rag". If you deployed your Enterprise RAG blueprint in the namespace nv-nvidia-blueprint-rag and made no changes to the services names you can leave them as is.
 
 * `<REQUIRED: ADD LLM MODEL NAME e.g. meta/llama-3.1-8b-instruct>` Should be replaced with the name of the model that you're using.
 * `<OPTIONAL: ADD MLIS ENDPOINT/v1, or remove line if using NVIDIA Endpoint>` should be replaced with your MLIS model endpoint (without the `/v1`). Remove this name/value lines if you're using the Nvidia API endpoints
