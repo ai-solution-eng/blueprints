@@ -14,10 +14,23 @@ In Progress
 3. NGC API key (to access container images)
 4. Enterprise RAG Blueprint deployed (insert link here)
 
-### LLM Configuration
+## Configuration
+- Setup required environment variables
+    ```
+    export NAMESPACE='aira'
+    export NGC_API_KEY=<ngc-api-key-to-pull-images>
+    export NVIDIA_API_KEY=<nvidia-api-key-to-use-nvidia-api>
+    ```
 
-If you want to use the Nvidia public API, you'll need to have an api key for it.
-If you're going to use an MLIS-provided model (meta/llama-3.1-8b-instruct recommended), you'll need the endpoint URL as well as an access token for the model.
+- Create namespace (if not already created)
+    ```
+    kubectl create namespace $NAMESPACE
+    ```
+- Create secrets
+    ```
+    kubectl create secret docker-registry ngc-secret --docker-server=nvcr.io --docker-username='$oauthtoken' --docker-password=$NGC_API_KEY -n $NAMESPACE
+    kubectl create secret generic ngc-api --from-literal=NGC_API_KEY=$NVIDIA_API_KEY --from-literal=NGC_CLI_API_KEY=$NVIDIA_API_KEY -n $NAMESPACE
+    ```
 
 
 ## Configuration
@@ -44,19 +57,17 @@ If you're going to use an MLIS-provided model (meta/llama-3.1-8b-instruct recomm
         
         Helm Chart: Choose the packaged chart file (.tgz) in this directory.
         
-        Namespace: ai-q
-        Release Name: ai-q
+        Namespace: aira
+        Release Name: of your choice, for example ai-q
         
     
     
 **Framework Values:**
  Configure the override values file of your application by using the Helm Values (YAML) box. This is where you will need to supply the items listed above (NGC key, MLIS endpoint and token, etc):
 
-* `<REQUIRED: ADD NGC KEY>` Should be replaced with your NGC API key that has access to the NIMs in this blueprint
 * `<REQUIRED: ADD LLM MODEL NAME e.g. meta/llama-3.1-8b-instruct>` Should be replaced with the name of the model that you're using.
 * `<OPTIONAL: ADD MLIS ENDPOINT/v1, or remove line if using NVIDIA Endpoint>` should be replaced with your MLIS model endpoint (without the `/v1`). Remove this name/value lines if you're using the Nvidia API endpoints
 * `<OPTIONAL: ADD MLIS API KEY if using MLIS Endpoint>` should be replaced with your token to access the MLIS model endpoint. Remove this name/value lines if you're using the Nvidia API endpoints
-* `<OPTIONAL: ADD NVIDIA API KEY if using NVIDIA Endpoint>` should be replaced wiht your Nvidia API key (not your NGC key) if you're using the API endpoints. There are 4 locations in the values you need to update.
 
 
 ## Additional Notes

@@ -18,7 +18,7 @@ replicaCount: 1
 ngcImagePullSecretName: "ngc-secret"
 
 imagePullSecret:
-  create: true
+  create: false
   name: "ngc-secret"
   registry: "nvcr.io"
   username: "$oauthtoken"
@@ -69,7 +69,7 @@ command: "/entrypoint.sh"
 ngcApiSecret:
   name: "ngc-api"
   password: "" # UPDATE THIS
-  create: true
+  create: false
 
 nim-llm:
   enabled: true
