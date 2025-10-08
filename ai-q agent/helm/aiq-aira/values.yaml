@@ -72,7 +72,7 @@ ngcApiSecret:
   create: false
 
 nim-llm:
-  enabled: true
+  enabled: false
   service:
     name: "nim-llm"
   image:
