@@ -32,7 +32,8 @@ In Progress
     kubectl create secret docker-registry ngc-secret --docker-server=nvcr.io --docker-username='$oauthtoken' --docker-password=$NGC_API_KEY -n $NAMESPACE
     kubectl create secret generic ngc-api --from-literal=NGC_API_KEY=$NVIDIA_API_KEY --from-literal=NGC_CLI_API_KEY=$NVIDIA_API_KEY -n $NAMESPACE
     ```
-- run load-files.yaml (if you have been using the recommended namespaces for rag blueprint and this you don't need to adapt anything, if you decided for a different one, you might need to adapt the namespace (line 5) and the namespaces fo the rag services (line 17, line 21))
+- run load-files.yaml (if you have been using the recommended namespaces for rag blueprint and this you don't need to adapt anything, if you decided for a different one, you might need to adapt the namespace (line 5) and the namespaces fo the rag services (line 17, line 21)). Once you've done the adpations run it with kubectl apply -f load-files.yaml
+Bring some time for this step! It's two collections with in total 174 PDFs so it takes it's time to upload them.In the meanwhile you can proceed with importing the ai-q framework. You will need to wait until this job is finished in order to use the Financial or Biomedical example data set. 
 
 ## Configuration
 

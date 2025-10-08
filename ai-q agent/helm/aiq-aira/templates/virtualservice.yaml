@@ -8,19 +8,115 @@ spec:
   - {{ .Values.ezua.virtualService.endpoint | quote }}
   gateways:
   - {{ .Values.ezua.virtualService.istioGateway }}
-  tls:
-  - match:
-    - port: 443
-      sniHosts:
-      - {{ .Values.ezua.virtualService.endpoint }}
-    route:
-    - destination:
-        host: {{ .Release.Name }}-aira-frontend.{{ .Release.Namespace }}.svc.cluster.local
-        port:
-          number: {{ .Values.frontend.service.targetPort }}
   http:
-  - route:
-    - destination:
-        host: {{ .Release.Name }}-aira-frontend.{{ .Release.Namespace }}.svc.cluster.local
-        port:
-          number: {{ .Values.frontend.service.targetPort }}
+    - match:
+        - uri:
+            exact: /v1/status
+      route:
+        - destination:
+            host: ingestor-server.nv-rag.svc.cluster.local
+            port:
+              number: 8082
+    - match:
+        - uri:
+            exact: /v1/documents
+      route:
+        - destination:
+            host: ingestor-server.nv-rag.svc.cluster.local
+            port:
+              number: 8082
+    - match:
+        - uri:
+            exact: /v1/collections
+      route:
+        - destination:
+            host: ingestor-server.nv-rag.svc.cluster.local
+            port:
+              number: 8082
+    - match:
+        - uri:
+            exact: /v2/protected/aiq/v1/status
+      route:
+        - destination:
+            host: ingestor-server.nv-rag.svc.cluster.local
+            port:
+              number: 8082
+    - match:
+        - uri:
+            exact: /v2/protected/aiq/v1/documents
+      route:
+        - destination:
+            host: ingestor-server.nv-rag.svc.cluster.local
+            port:
+              number: 8082
+    - match:
+        - uri:
+            exact: /v2/protected/aiq/v1/collections
+      route:
+        - destination:
+            host: ingestor-server.nv-rag.svc.cluster.local
+            port:
+              number: 8082
+    - match:
+        - uri:
+            exact: /v2/protected/aiq/v1/files
+      route:
+        - destination:
+            host: ingestor-server.rag.svc.cluster.local
+            port:
+              number: 8082
+    - match:
+        - uri:
+            exact: /v2/protected/aiq/v1/default_collections
+      route:
+        - destination:
+            host: aiq-aira-aira-backend.aira.svc.cluster.local
+            port:
+              number: 3838
+    - match:
+        - uri:
+            exact: /v2/protected/aiq/v1/generate_query
+      route:
+        - destination:
+            host: aiq-aira-aira-backend.aira.svc.cluster.local
+            port:
+              number: 3838
+    - match:
+        - uri:
+            exact: /v2/protected/aiq/v1/generate_summary
+      route:
+        - destination:
+            host: aiq-aira-aira-backend.aira.svc.cluster.local
+            port:
+              number: 3838
+    - match:
+        - uri:
+            exact: /v2/protected/aiq/v1/artifact_qa
+      route:
+        - destination:
+            host: aiq-aira-aira-backend.aira.svc.cluster.local
+            port:
+              number: 3838
+    - match:
+        - uri:
+            prefix: /v2/protected/aiq/
+      route:
+        - destination:
+            host: aiq-aira-aira-backend.aira.svc.cluster.local
+            port:
+              number: 3838
+    - route:
+      - destination:
+          host: {{ .Release.Name }}-aira-frontend.{{ .Release.Namespace }}.svc.cluster.local
+          port:
+            number: {{ .Values.frontend.service.targetPort }}
+  tls:
+    - match:
+        - port: 443
+          sniHosts:
+            - {{ .Values.ezua.virtualService.endpoint }}
+      route:
+        - destination:
+          host: {{ .Release.Name }}-aira-frontend.{{ .Release.Namespace }}.svc.cluster.local
+          port:
+            number: {{ .Values.frontend.service.targetPort }}
