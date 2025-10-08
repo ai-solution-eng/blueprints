@@ -13,8 +13,9 @@ In Progress
 2. Administrative privileges to import custom frameworks
 3. NGC API key (to access container images)
 4. Enterprise RAG Blueprint deployed (insert link here)
+5. Deploy a Llama 3.x Instruct Model via MLIS, per default they expect Llama 3.3 70B instruct, but works with llama 3.1 8b as well.
 
-## Configuration
+## Preparation
 - Setup required environment variables
     ```
     export NAMESPACE='aira'
@@ -31,7 +32,7 @@ In Progress
     kubectl create secret docker-registry ngc-secret --docker-server=nvcr.io --docker-username='$oauthtoken' --docker-password=$NGC_API_KEY -n $NAMESPACE
     kubectl create secret generic ngc-api --from-literal=NGC_API_KEY=$NVIDIA_API_KEY --from-literal=NGC_CLI_API_KEY=$NVIDIA_API_KEY -n $NAMESPACE
     ```
-
+- run load-files.yaml (if you have been using the recommended namespaces for rag blueprint and this you don't need to adapt anything, if you decided for a different one, you might need to adapt the namespace (line 5) and the namespaces fo the rag services (line 17, line 21))
 
 ## Configuration
 
@@ -64,6 +65,8 @@ In Progress
     
 **Framework Values:**
  Configure the override values file of your application by using the Helm Values (YAML) box. You will need to doublecheck the services referring to the ones deployed with your Enterprise RAG blueprint. To identify those sections search for "nv-nvidia-blueprint-rag". If you deployed your Enterprise RAG blueprint in the namespace nv-nvidia-blueprint-rag and made no changes to the services names you can leave them as is.
+
+ You will need to provide the endpoint url and API Key for your via mlis deployed Llama instruct model.
 
 * `<REQUIRED: ADD LLM MODEL NAME e.g. meta/llama-3.1-8b-instruct>` Should be replaced with the name of the model that you're using.
 * `<OPTIONAL: ADD MLIS ENDPOINT/v1, or remove line if using NVIDIA Endpoint>` should be replaced with your MLIS model endpoint (without the `/v1`). Remove this name/value lines if you're using the Nvidia API endpoints

@@ -14,11 +14,11 @@ spec:
         imagePullPolicy: IfNotPresent
         env:
         - name: MILVUS_HOST
-          value: "milvus.rag.svc.cluster.local"
+          value: "milvus.nv-nvidia-blueprint-rag.svc.cluster.local"
         - name: MILVUS_PORT
           value: "19530"
         - name: RAG_INGEST_URL
-          value: "http://ingestor-server.rag.svc.cluster.local:8082"
+          value: "http://ingestor-server.nv-nvidia-blueprint-rag.svc.cluster.local:8082"
         - name: PYTHONUNBUFFERED
           value: "1"
         volumeMounts:
