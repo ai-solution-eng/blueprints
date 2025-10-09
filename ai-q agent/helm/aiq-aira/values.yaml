@@ -17,12 +17,13 @@ replicaCount: 1
 # or update the imagePullSecret.password with your NGC API key
 ngcImagePullSecretName: "ngc-secret"
 
+# As we create it manually upfront this can be left on create: false
 imagePullSecret:
   create: false
   name: "ngc-secret"
   registry: "nvcr.io"
   username: "$oauthtoken"
-  password: "" #UPDATE THIS
+  password: "" 
 
 # The image repository and tag for the AIQ AIRA backend service.
 image:  
@@ -36,20 +37,21 @@ service:
 
 # Update each value according to your desired configuration.
 config:
+  rag_blueprint_namespace: nv-nvidia-blueprint-rag # Edit if you used a different one
   # The instruct_ settings are for the general purpose Q&A LLM
-  instruct_model_name: "meta/llama-3.3-70b-instruct"
+  instruct_model_name: "<REQUIRED: ADD LLM MODEL NAME e.g. meta/llama-3.1-8b-instruct>"
   instruct_temperature: "0.0"
-  instruct_api_key: "not-needed" 
-  instruct_base_url: "http://nim-llm.aira.svc.cluster.local:8000/v1"
+  instruct_api_key: "<REQUIRED: ADD MLIS TOKEN or NGC API KEY if you want to use NVIDIA API>" 
+  instruct_base_url: "<REQUIRED: ADD MLIS ENDPOINT/v1 or https://integrate.api.nvidia.com/v1 if you want to use NVIDIA API>"
   # The nemotron_ settings are for the reasoning LLM
-  nemotron_api_key: "not-needed" # not needed as we use the nemotron service from the RAG deployment which does not require an API key
+  nemotron_api_key: "<REQUIRED: NGC API KEY>"  
   nemotron_model_name: "nvidia/llama-3.3-nemotron-super-49b-v1"
   nemotron_temperature: "0.5"
-  nemotron_base_url: "http://nim-llm.nv-nvidia-blueprint-rag.svc.cluster.local:8000/v1" # provided by the RAG deployment 
+  nemotron_base_url: "https://integrate.api.nvidia.com/v1" # this uses the NVIDIA API, if you want to swap for a local model deploy it locally with MLIS and edit accordingly
   nemotron_max_tokens: "5000"
   nemotron_stream: "true"
   # Enter your Tavily API key here to enable web search
-  tavily_api_key: "" #UPDATE THIS
+  tavily_api_key: "<OPTIONAL: IF YOU WANT TO USE WEBSEARCH CREATE A TAVILY ACCOUNT AND PASTE YOUR API KEY HERE>" #UPDATE THIS
   # Enter the IP address of the RAG services
   rag_ingest_url: "http://ingestor-server.nv-nvidia-blueprint-rag.svc.cluster.local:8082" # provided by the RAG deployment 
   rag_url: "http://rag-server.nv-nvidia-blueprint-rag.svc.cluster.local:8081" # provided by the RAG deployment 
@@ -66,9 +68,10 @@ command: "/entrypoint.sh"
 # The nemotron llm is assumed to be deployed via the RAG helm chart
 # ------------------------------------------------------------
 
+# As we create it manually upfront this can be left on create: false
 ngcApiSecret:
   name: "ngc-api"
-  password: "" # UPDATE THIS
+  password: "" 
   create: false
 
 nim-llm:
@@ -94,8 +97,6 @@ nim-llm:
 # The frontend application is a React web app. We recommend a NodePort so the frontend will be accessible at <your-node-ip>:3001
 frontend:
   enabled: true
-  # Update the value below to the IP address and port of the nginx service
-  proxyUrl: http://aira-nginx.aira.svc.cluster.local:8051
   service:
     port: 3001
     targetPort: 3001

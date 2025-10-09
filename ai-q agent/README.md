@@ -4,6 +4,8 @@
 
 This Helm chart deploys the [Nvidia AI-Q Agent for Enterprise Research](https://github.com/NVIDIA-AI-Blueprints/aiq-research-assistant) and its associated services on HPE PCAI environments.
 
+We are using one model locally deployed on HPE MLIS, and one model via NVIDIA API.
+
 # Demo Video
 In Progress
 
@@ -11,9 +13,10 @@ In Progress
 
 1. Access to an a PCAI cluster
 2. Administrative privileges to import custom frameworks
-3. NGC API key (to access container images)
-4. Enterprise RAG Blueprint deployed (insert link here)
-5. Deploy a Llama 3.x Instruct Model via MLIS, per default they expect Llama 3.3 70B instruct, but works with llama 3.1 8b as well.
+3. kubectl access to run preparation tasks
+4. NGC API key (to access container images)
+5. Enterprise RAG Blueprint deployed (insert link here)
+6. Deploy a Llama 3.x Instruct Model via MLIS, per default they expect Llama 3.3 70B instruct, but works with llama 3.1 8b as well.
 
 ## Preparation
 - Setup required environment variables
@@ -77,11 +80,15 @@ The upload might also time out, if that is the case adapt the env MAX_UPLOAD_WAI
 **Framework Values:**
  Configure the override values file of your application by using the Helm Values (YAML) box. You will need to doublecheck the services referring to the ones deployed with your Enterprise RAG blueprint. To identify those sections search for "nv-nvidia-blueprint-rag". If you deployed your Enterprise RAG blueprint in the namespace nv-nvidia-blueprint-rag and made no changes to the services names you can leave them as is.
 
- You will need to provide the endpoint url and API Key for your via mlis deployed Llama instruct model.
+ If you deployed the Enterprise RAG blueprint in a different namespace make sure to provide that in the section config > rag_blueprint_namespace
+
+ You will need to provide the endpoint url and API Key for your via mlis deployed Llama instruct model. This helm chart is prepared to have a locally deployed Instruct LLM and using the NVIDIA API for the Nemotron Model. You can decide to have both local or both using the NVIDIA API. Therefore configure accordingly:
 
 * `<REQUIRED: ADD LLM MODEL NAME e.g. meta/llama-3.1-8b-instruct>` Should be replaced with the name of the model that you're using.
-* `<OPTIONAL: ADD MLIS ENDPOINT/v1, or remove line if using NVIDIA Endpoint>` should be replaced with your MLIS model endpoint (without the `/v1`). Remove this name/value lines if you're using the Nvidia API endpoints
-* `<OPTIONAL: ADD MLIS API KEY if using MLIS Endpoint>` should be replaced with your token to access the MLIS model endpoint. Remove this name/value lines if you're using the Nvidia API endpoints
+* `<REQUIRED: ADD MLIS TOKEN or NGC API KEY if you want to use NVIDIA API>` should be replaced with your token to access the MLIS model endpoint. If you decide to use the NVIDIA API for the Instruct Model provide your NGC API Key you used for creating the secret (stored as environment variable $NVIDIA_API_KEY)
+* `<REQUIRED: ADD MLIS ENDPOINT/v1 or https://integrate.api.nvidia.com/v1 if you want to use NVIDIA API>` should be replaced with your MLIS model endpoint, don't forget to add /v1. If you want to use the NVIDIA API paste https://integrate.api.nvidia.com/v1 here
+* `<REQUIRED: NGC API KEY>` should be replaced with NGC API Key you used for creating the secret (stored as environment variable $NVIDIA_API_KEY)
+* `<OPTIONAL: IF YOU WANT TO USE WEBSEARCH CREATE A TAVILY ACCOUNT AND PASTE YOUR API KEY HERE>` if next to searching through collections you want to enable websearch a tavily account is required. For demo/testing you can create one for free, for production enviornments however the of the free tier might be too limited.
 
 
 ## Additional Notes
