@@ -21,11 +21,23 @@ spec:
           value: "http://ingestor-server.nv-nvidia-blueprint-rag.svc.cluster.local:8082"
         - name: PYTHONUNBUFFERED
           value: "1"
+        - name: MAX_UPLOAD_WAIT_TIME
+          value: "5000"
         volumeMounts:
         - name: tempdata
           mountPath: /tmp-data
+        - mountPath: /app/sync_files2.py
+          name: sync-files2-volume
+          subPath: sync_files2.py
       volumes:
       - name: tempdata
         emptyDir: {}
+      - configMap:
+          defaultMode: 420
+          items:
+          - key: sync_files2.py
+            path: sync_files2.py
+          name: sync-files2-cm
+        name: sync-files2-volume
 
       restartPolicy: OnFailure 
