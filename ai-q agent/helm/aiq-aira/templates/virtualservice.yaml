@@ -20,7 +20,7 @@ spec:
           rewrite: /v1/\1
       route:
         - destination:
-            host: ingestor-server.nv-rag.svc.cluster.local
+            host: ingestor-server.{{ .Values.config.rag_blueprint_namespace }}.svc.cluster.local
             port:
               number: 8082
     - match:
@@ -33,7 +33,7 @@ spec:
           rewrite: /v1/\1
       route:
         - destination:
-            host: ingestor-server.nv-rag.svc.cluster.local
+            host: ingestor-server.{{ .Values.config.rag_blueprint_namespace }}.svc.cluster.local
             port:
               number: 8082
     - match:
@@ -43,7 +43,7 @@ spec:
         uri: /v1/documents
       route:
         - destination:
-            host: ingestor-server.nv-rag.svc.cluster.local
+            host: ingestor-server.{{ .Values.config.rag_blueprint_namespace }}.svc.cluster.local
             port:
               number: 8082
     - match:
