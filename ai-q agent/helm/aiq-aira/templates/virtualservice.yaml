@@ -8,10 +8,16 @@ spec:
   - {{ .Values.ezua.virtualService.endpoint | quote }}
   gateways:
   - {{ .Values.ezua.virtualService.istioGateway }}
+  hosts:
+    - ai-q.ai-application.staging.discover.hpepcai.com
   http:
     - match:
         - uri:
-            exact: /v1/status
+            regex: .*\/v1\/(status|documents|collections)(\/|$)(.*)
+      rewrite:
+        uriRegexRewrite:
+          match: .*\/v1\/(status|documents|collections)(\/|$)(.*)
+          rewrite: /v1/\1
       route:
         - destination:
             host: ingestor-server.nv-rag.svc.cluster.local
@@ -19,7 +25,12 @@ spec:
               number: 8082
     - match:
         - uri:
-            exact: /v1/documents
+            regex: >-
+              .*\/v2\/protected\/aiq\/v1\/(status|documents|collections)(\/|$)(.*)
+      rewrite:
+        uriRegexRewrite:
+          match: .*\/v2\/protected\/aiq\/v1\/(status|documents|collections)(\/|$)(.*)
+          rewrite: /v1/\1
       route:
         - destination:
             host: ingestor-server.nv-rag.svc.cluster.local
@@ -27,7 +38,9 @@ spec:
               number: 8082
     - match:
         - uri:
-            exact: /v1/collections
+            regex: .*\/v2\/protected\/aiq\/v1\/files
+      rewrite:
+        uri: /v1/documents
       route:
         - destination:
             host: ingestor-server.nv-rag.svc.cluster.local
@@ -35,81 +48,90 @@ spec:
               number: 8082
     - match:
         - uri:
-            exact: /v2/protected/aiq/v1/status
+            regex: >-
+              .*\/v2\/protected\/aiq\/v1\/(generate_query|generate_summary|artifact_qa)(.*)
+      rewrite:
+        uriRegexRewrite:
+          match: >-
+            .*\/v2\/protected\/aiq\/v1\/(generate_query|generate_summary|artifact_qa)(.*)
+          rewrite: /\1\2
       route:
         - destination:
-            host: ingestor-server.nv-rag.svc.cluster.local
-            port:
-              number: 8082
-    - match:
-        - uri:
-            exact: /v2/protected/aiq/v1/documents
-      route:
-        - destination:
-            host: ingestor-server.nv-rag.svc.cluster.local
-            port:
-              number: 8082
-    - match:
-        - uri:
-            exact: /v2/protected/aiq/v1/collections
-      route:
-        - destination:
-            host: ingestor-server.nv-rag.svc.cluster.local
-            port:
-              number: 8082
-    - match:
-        - uri:
-            exact: /v2/protected/aiq/v1/files
-      route:
-        - destination:
-            host: ingestor-server.rag.svc.cluster.local
-            port:
-              number: 8082
-    - match:
-        - uri:
-            exact: /v2/protected/aiq/v1/default_collections
-      route:
-        - destination:
-            host: aiq-aira-aira-backend.aira.svc.cluster.local
+            host: {{ .Release.Name }}-aira-backend.{{ .Release.Namespace }}.svc.cluster.local
             port:
               number: 3838
     - match:
         - uri:
-            exact: /v2/protected/aiq/v1/generate_query
+            regex: .*\/v2\/protected\/aiq\/default_collections(.*)
+      rewrite:
+        uriRegexRewrite:
+          match: .*\/v2\/protected\/aiq\/default_collections(.*)
+          rewrite: /default_collections/\1
       route:
         - destination:
-            host: aiq-aira-aira-backend.aira.svc.cluster.local
+            host: {{ .Release.Name }}-aira-backend.{{ .Release.Namespace }}.svc.cluster.local
             port:
               number: 3838
+    - directResponse:
+        body:
+          string: OK
+        status: 200
+      match:
+        - uri:
+            regex: .*\/v2\/protected\/aiq\/health
+    - directResponse:
+        body:
+          string: OK
+        status: 200
+      match:
+        - uri:
+            regex: .*\/v2\/protected\/aiq\/keepalive
+    - directResponse:
+        body:
+          string: OK
+        status: 200
+      match:
+        - uri:
+            regex: .*\/keepalive
+    - directResponse:
+        body:
+          string: OK
+        status: 200
+      match:
+        - uri:
+            regex: .*\/health
     - match:
         - uri:
-            exact: /v2/protected/aiq/v1/generate_summary
+            regex: .*\/v2\/protected\/aiq\/(.*)
+      rewrite:
+        uriRegexRewrite:
+          match: .*\/v2\/protected\/aiq\/(.*)
+          rewrite: /v2/protected/aiq/\1
       route:
         - destination:
-            host: aiq-aira-aira-backend.aira.svc.cluster.local
+            host: {{ .Release.Name }}-aira-frontend.{{ .Release.Namespace }}.svc.cluster.local
             port:
-              number: 3838
+              number: 3001
     - match:
         - uri:
-            exact: /v2/protected/aiq/v1/artifact_qa
+            regex: .*\/v2\/(.*)
+      rewrite:
+        uriRegexRewrite:
+          match: .*\/v2\/\/(.*)
+          rewrite: /v2/\1
       route:
         - destination:
-            host: aiq-aira-aira-backend.aira.svc.cluster.local
+            host: {{ .Release.Name }}-aira-frontend.{{ .Release.Namespace }}.svc.cluster.local
             port:
-              number: 3838
+              number: {{ .Values.frontend.service.targetPort }}
     - match:
         - uri:
-            prefix: /v2/protected/aiq/
+            prefix: /
       route:
         - destination:
-            host: aiq-aira-aira-backend.aira.svc.cluster.local
+            host: {{ .Release.Name }}-aira-frontend.{{ .Release.Namespace }}.svc.cluster.local
             port:
-              number: 3838
-    - route:
-      - destination:
-          host: {{ .Release.Name }}-aira-frontend.{{ .Release.Namespace }}.svc.cluster.local
-          port:
-            number: {{ .Values.frontend.service.targetPort }}
+              number: {{ .Values.frontend.service.targetPort }}
   tls:
     - match:
         - port: 443
