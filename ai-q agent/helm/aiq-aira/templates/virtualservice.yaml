@@ -139,6 +139,6 @@ spec:
             - {{ .Values.ezua.virtualService.endpoint }}
       route:
         - destination:
-          host: {{ .Release.Name }}-aira-frontend.{{ .Release.Namespace }}.svc.cluster.local
-          port:
-            number: {{ .Values.frontend.service.targetPort }}
+            host: {{ .Release.Name }}-aira-frontend.{{ .Release.Namespace }}.svc.cluster.local
+            port:
+              number: {{ .Values.frontend.service.targetPort }}
