@@ -15,8 +15,9 @@ In Progress
 2. Administrative privileges to import custom frameworks
 3. kubectl access to run preparation tasks
 4. NGC API key (to access container images)
-5. Enterprise RAG Blueprint deployed (insert link here)
-6. Deploy a Llama 3.x Instruct Model via MLIS, per default they expect Llama 3.3 70B instruct, but works with llama 3.1 8b as well.
+5. NVIDIA API key (to interact with NVIDIA API)
+6. Deployed ([Enterprise RAG Blueprint](https://github.com/ai-solution-eng/blueprints/tree/main/enterprise-rag))
+7. Deploy a Llama 3.x Instruct Model via MLIS, per default they expect Llama 3.3 70B instruct, but works with llama 3.1 8b as well.
 
 ## Preparation
 - Setup required environment variables
@@ -41,12 +42,13 @@ In Progress
     kubectl apply -f adapted_sync_files.yaml -n $NAMESPACE
     ```
   then apply the job (if you have been using the recommended namespaces for rag blueprint and this you don't need to adapt anything, if you decided for a different one, you might need to adapt the namespace (line 5) and the namespaces fo the rag services (line 17, line 21))
-      ```
+    ```
     kubectl apply -f load_files.yaml -n $NAMESPACE
     ```
 
 Bring some time for this step! It's two collections with in total 174 PDFs so it takes it's time to upload them. In the meanwhile you can proceed with importing the ai-q framework. You will need to wait until this job is finished in order to use the Financial or Biomedical example data set. 
 The upload might also time out, if that is the case adapt the env MAX_UPLOAD_WAIT_TIME in load-files.yaml to a higher number and reapply. 
+Check the logs of the pod that gets created by this job. If it does not upload successful the documents (to verify look at the collection on the RAG Blueprint UI and or the logs of the pod that gets created by the job), please check the nv-ingest container in the namespace you've deployed the Enterprise RAG Blueprint, consider increasing the memory of this pod eg to 64GB.
 
 ## Configuration
 
