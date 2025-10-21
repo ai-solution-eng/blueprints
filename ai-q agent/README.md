@@ -12,7 +12,7 @@ We are using one model locally deployed on HPE MLIS, and one model via NVIDIA AP
 
 # Demo Video
 
-[Demo Video](https://storage.googleapis.com/ai-solution-engineering-videos/public/AI-Q%20Blueprint%20Demo.mp4)
+[![AI-Q-demo-video](nvidia-logo.png)](https://storage.googleapis.com/ai-solution-engineering-videos/public/AI-Q%20Blueprint%20Demo.mp4)
 
 ## Prerequisites
 
