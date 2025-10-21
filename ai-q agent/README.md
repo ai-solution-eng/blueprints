@@ -1,10 +1,14 @@
-# WIP AI-Q Agent for Enterprise Research Helm Chart
+# AI-Q Agent for Enterprise Research Helm Chart
 
-*** This is work in progress!!!! ***
-
-This Helm chart deploys the [Nvidia AI-Q Agent for Enterprise Research](https://github.com/NVIDIA-AI-Blueprints/aiq-research-assistant) and its associated services on HPE PCAI environments.
+This Helm chart deploys the [Nvidia AI-Q Agent for Enterprise Research](https://github.com/NVIDIA-AI-Blueprints/aiq-research-assistant) and its associated services on HPE Private Cloud AI (PCAI) environments.
 
 We are using one model locally deployed on HPE MLIS, and one model via NVIDIA API.
+
+| Owner                       | Name                                   | Email                                                     |
+| ----------------------------|----------------------------------------|-----------------------------------------------------------|
+| Use Case Owner              | Francesco Caliva, Isabelle Steinhauser | francesco.caliva@hpe.com, isabelle.steinhauser@hpe.com    |
+| PCAI Deployment Owner       | Francesco Caliva, Isabelle Steinhauser | francesco.caliva@hpe.com, isabelle.steinhauser@hpe.com    |
+
 
 # Demo Video
 In Progress
