@@ -87,7 +87,9 @@ Check the logs of the pod that gets created by this job. If it does not upload s
 **Framework Values:**
  Configure the override values file of your application by using the Helm Values (YAML) box. You will need to doublecheck the services referring to the ones deployed with your Enterprise RAG blueprint. To identify those sections search for "nv-nvidia-blueprint-rag". If you deployed your Enterprise RAG blueprint in the namespace nv-nvidia-blueprint-rag and made no changes to the services names you can leave them as is.
 
- If you deployed the Enterprise RAG blueprint in a different namespace make sure to provide that in the section config > rag_blueprint_namespace
+ If you deployed the Enterprise RAG blueprint in a different namespace than nv-nvidia-blueprint-rag make sure to edit that in the following section of the values.yaml:
+
+ * config: # REQUIRED to edit if a different namespace was used for NVIDIA Rag Blueprint deployment
 
  You will need to provide the endpoint url and API Key for your via mlis deployed Llama instruct model. This helm chart is prepared to have a locally deployed Instruct LLM and using the NVIDIA API for the Nemotron Model. You can decide to have both local or both using the NVIDIA API. Therefore configure accordingly:
 
@@ -96,6 +98,7 @@ Check the logs of the pod that gets created by this job. If it does not upload s
 * `<REQUIRED: ADD MLIS ENDPOINT/v1 or https://integrate.api.nvidia.com/v1 if you want to use NVIDIA API>` should be replaced with your MLIS model endpoint, don't forget to add /v1. If you want to use the NVIDIA API paste https://integrate.api.nvidia.com/v1 here
 * `<REQUIRED: NGC API KEY>` should be replaced with NGC API Key you used for creating the secret (stored as environment variable $NVIDIA_API_KEY)
 * `<OPTIONAL: IF YOU WANT TO USE WEBSEARCH CREATE A TAVILY ACCOUNT AND PASTE YOUR API KEY HERE>` if next to searching through collections you want to enable websearch a tavily account is required. For demo/testing you can create one for free, for production enviornments however the of the free tier might be too limited.
+
 
 
 ## Additional Notes

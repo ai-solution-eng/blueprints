@@ -37,7 +37,15 @@ service:
 
 # Update each value according to your desired configuration.
 config:
-  rag_blueprint_namespace: "<REQUIRED: ADD RAG BLUEPRINT DEPLOYMENT NAMESPACE e.g. nv-nvidia-blueprint-rag or nv-rag>"
+ # REQUIRED to edit if a different namespace was used for NVIDIA Rag Blueprint deployment:
+  rag_blueprint_namespace: nv-nvidia-blueprint-rag # Edit if you used a different namespace for NVIDIA Rag Blueprint deployment
+  rag_ingest_url: "http://ingestor-server.nv-nvidia-blueprint-rag.svc.cluster.local:8082" # Edit if you used a different namespace for NVIDIA Rag Blueprint deployment, it's linking to a specific service in the form of http://ingestor-server.${NAMESPACE of RAG Blueprint Deployment}.svc.cluster.local
+  rag_url: "http://rag-server.nv-nvidia-blueprint-rag.svc.cluster.local:8081" # Edit if you used a different namespace for NVIDIA Rag Blueprint deployment, it's linking to a specific service in the form of http://rag-server.${NAMESPACE of RAG Blueprint Deployment}.svc.cluster.local:${PORT})
+  rag_api_key: "" # Typically not required
+  milvus_host: "milvus.nv-nvidia-blueprint-rag.svc.cluster.local" # Edit if you used a different namespace for NVIDIA Rag Blueprint deployment, it's linking to a specific service in the form of http://milvus.${NAMESPACE of RAG Blueprint Deployment}.svc.cluster.local
+  milvus_port: "19530"  # Typically doesn't change, edit if you used a different port in the NVIDIA RAG Blueprint deployment as preconfigured
+
+# REQUIRED to fill out according to model choice and deployment beforehand:
   # The instruct_ settings are for the general purpose Q&A LLM
   instruct_model_name: "<REQUIRED: ADD LLM MODEL NAME e.g. meta/llama-3.1-8b-instruct>"
   instruct_temperature: "0.0"
@@ -52,12 +60,7 @@ config:
   nemotron_stream: "true"
   # Enter your Tavily API key here to enable web search
   tavily_api_key: "<OPTIONAL: IF YOU WANT TO USE WEBSEARCH CREATE A TAVILY ACCOUNT AND PASTE YOUR API KEY HERE>" #UPDATE THIS
-  # Enter the IP address of the RAG services
-  rag_ingest_url: "<REQUIRED: ADD RAG INGEST URL (THIS IS PROVIDED BY RAG BLUEPRINT DEPLOYMENT in the form of http://${SVC NAME}.${NAMESPACE}.svc.cluster.local:${PORT}) e.g. http://ingestor-server.nv-nvidia-blueprint-rag.svc.cluster.local:8082>"
-  rag_url: "<REQUIRED: ADD RAG INGEST URL (THIS IS PROVIDED BY RAG BLUEPRINT DEPLOYMENT in the form of http://${SVC NAME}.${NAMESPACE}.svc.cluster.local:${PORT}) e.g. http://rag-server.nv-nvidia-blueprint-rag.svc.cluster.local:8081>" 
-  rag_api_key: "" #Typically not required
-  milvus_host: "<REQUIRED: ADD MILVUS HOST (THIS IS PROVIDED BY RAG BLUEPRINT DEPLOYMENT in the form of http://${SVC NAME}.${NAMESPACE}.svc.cluster.local) e.g. milvus.nv-nvidia-blueprint-rag.svc.cluster.local>" # provided by the RAG deployment 
-  milvus_port: "<REQUIRED: ADD MILVUS PORT (THIS IS PROVIDED BY RAG BLUEPRINT DEPLOYMENT) e.g. 19530>"
+
 
 # Do not update this command. It is the default command to launch the AI-Q backend service.
 command: "/entrypoint.sh"
