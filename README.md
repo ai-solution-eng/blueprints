@@ -16,4 +16,3 @@ This repository contains NVIDIA Blueprints validated for deployment on Private C
 | [Enterprise RAG](enterprise-rag)                    | Validated   | [Website](https://build.nvidia.com/nvidia/build-an-enterprise-rag-pipeline) \| [GitHub](https://github.com/NVIDIA-AI-Blueprints/rag/tree/v2.1.0)
 | [AI-Q Agent for Enterprise Research](<ai-q agent>)              | Validated     | [Website](https://build.nvidia.com/nvidia/aiq) \| [GitHub](https://github.com/NVIDIA-AI-Blueprints/aiq-research-assistant)
 | [Data Flywheel]()              | In Progress     | [Website](https://build.nvidia.com/nvidia/build-an-enterprise-data-flywheel) \| [GitHub](https://github.com/NVIDIA-AI-Blueprints/data-flywheel)
-| [Digital Human]()              | On Hold     | [Website](https://build.nvidia.com/nvidia/digital-humans-for-customer-service) \| [GitHub](https://github.com/NVIDIA-AI-Blueprints/digital-human)
