@@ -301,11 +301,22 @@ Alternatively, you can use a locally deployed embedding model by uncommenting th
  'error': None}
 ```
 
-After finetuning completes, in **Step 5: Deploy Customized Model and Run Inference** on the notebook, when running inference against the deployed finetuned model. The results should look like this.
+After finetuning completes, in **Step 5: Deploy Customized Model and Run Inference** on the notebook, deploy the base LLama-3.2-1B-instruct model. This will take about ~5 mins. 
 
 ```sh
 200
 {'async_enabled': False, 'config': {'model': 'meta/llama-3.2-1b-instruct', 'nim_deployment': {'additional_envs': {'NIM_GUIDED_DECODING_BACKEND': 'outlines'}, 'gpu': 1, 'image_name': 'nvcr.io/nim/meta/llama-3.2-1b-instruct', 'image_tag': '1.8', 'disable_lora_support': False}}, 'created_at': '2025-10-27T00:27:13.571436808Z', 'deployed': False, 'name': 'llama-3.2-1b-instruct', 'namespace': 'meta', 'status_details': {'description': 'Model deployment created', 'status': 'pending'}, 'url': ''}
+```
+
+When running inference against the deployed finetuned model. The results should look like this.
+
+```sh
+{'role': 'assistant',
+ 'content': None,
+ 'tool_calls': [{'id': 'chatcmpl-tool-950d59a48fb44adc93f6835cff2437cb',
+   'type': 'function',
+   'function': {'name': 'ToProductQAAssistant',
+    'arguments': '{"query": "What is the sizing, material, and shrinkage of the tri tee?"}'}}]}
 ```
 
 ## Import framework:
