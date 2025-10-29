@@ -25,7 +25,7 @@ This Helm chart deploys the [NVDIDIA Data Flywheel Blueprint](https://github.com
 kubectl apply -f https://raw.githubusercontent.com/volcano-sh/volcano/release-1.9/installer/volcano-development.yaml
 ```
 
-6. Create a new namespace "data-flywheel", edit the namespace to add the label "istio/injection" for sidecar injection. Note that this namespace name needs to match the namespace specified in the data-flywheel's values.yaml. 
+6. Create a new namespace "data-flywheel", edit the namespace to enable the label "istio-injection" for sidecar injection. Note that this namespace name needs to match the namespace specified in the data-flywheel's values.yaml. 
 
 ```sh
 kubectl create ns data-flywheel
@@ -226,24 +226,9 @@ Alternatively, you can use a locally deployed embedding model by uncommenting th
       storageClassName: "" 
 ```
 
-12. [Required] Disable OTEL collector in nemo customizer chart's values.yaml
+## Assessment of completion
 
-
-```yaml
-# -- Open Telemetry Collector configuration.
-# @default -- This object has the following default values for the Open Telemetry Collector configuration.
-opentelemetry-collector:
-  # -- Switch to enable or disable Open Telemetry Collector.
-  enabled: false
-  image:
-    # -- Repository for Open Telemetry Collector image.
-    repository: "otel/opentelemetry-collector-k8s"
-    # -- Overrides the image tag whose default is the chart appVersion.
-    tag: "0.102.1"
-
-```
-
-A successful deployment and finetuning should look like this on the Jupyter Notebook when running *get_job_status(job_id)*.
+ On the Jupyter Notebook, after you've created a new job in **Step 2: Create a Flywheel Job**, in **Step 3: Monitor Job Status**, when running *get_job_status(job_id)*, a successful deployment and finetuning completion should look like this:
 
 ```yaml
 {'id': '68feb303718f50e69f7092fd',
@@ -314,6 +299,13 @@ A successful deployment and finetuning should look like this on the Jupyter Note
    'num_records': 810,
    'nmp_uri': 'hf://datasets/dfwbp/flywheel-train-primary_assistant-1761522435'}],
  'error': None}
+```
+
+After finetuning completes, in **Step 5: Deploy Customized Model and Run Inference** on the notebook, when running inference against the deployed finetuned model. The results should look like this.
+
+```sh
+200
+{'async_enabled': False, 'config': {'model': 'meta/llama-3.2-1b-instruct', 'nim_deployment': {'additional_envs': {'NIM_GUIDED_DECODING_BACKEND': 'outlines'}, 'gpu': 1, 'image_name': 'nvcr.io/nim/meta/llama-3.2-1b-instruct', 'image_tag': '1.8', 'disable_lora_support': False}}, 'created_at': '2025-10-27T00:27:13.571436808Z', 'deployed': False, 'name': 'llama-3.2-1b-instruct', 'namespace': 'meta', 'status_details': {'description': 'Model deployment created', 'status': 'pending'}, 'url': ''}
 ```
 
 ## Import framework:
