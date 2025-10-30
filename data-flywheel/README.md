@@ -11,7 +11,7 @@ This Helm chart deploys the [NVDIDIA Data Flywheel Blueprint](https://github.com
 - The chart spins up automatically and all the pods are running. 
 - We tested starting a job from the notebook and could successfully create a job, monitor the job and deploy a custom inference endpoint.
 
-## Demo Video: [Link](https://hpe-my.sharepoint.com/:v:/p/daniel_cao/ESM8RJ1iW9RIkVUt6rjrKhsBCs_CJzOmDnbtdhqHwFELOw?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=8Ib51V)
+## Demo Video: [Link](https://storage.googleapis.com/ai-solution-engineering-videos/public/Data_Flywheel_Demo.mov)
 
 ## Prerequisites
 
