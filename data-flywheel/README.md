@@ -12,7 +12,7 @@ This Helm chart deploys the [NVDIDIA Data Flywheel Blueprint](https://github.com
 - We tested starting a job from the notebook and could successfully create a job, monitor the job and deploy a custom inference endpoint.
 
 ## Demo Video
-[![data-flywheel-demo-video](data-flywheel.png)](https://storage.googleapis.com/ai-solution-engineering-videos/public/Data_Flywheel_Demo.mov)
+[![data-flywheel-demo-video](data-flywheel.png)](https://storage.googleapis.com/ai-solution-engineering-videos/public/Data_Flywheel_Demo.mp4)
 
 ## Prerequisites
 
