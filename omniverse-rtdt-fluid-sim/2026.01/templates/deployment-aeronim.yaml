@@ -1,0 +1,82 @@
+{{/*
+Copyright (c) 2024-2025, NVIDIA CORPORATION.  All rights reserved.
+
+NVIDIA CORPORATION and its licensors retain all intellectual property
+and proprietary rights in and to this software, related documentation
+and any modifications thereto.  Any use, reproduction, disclosure or
+distribution of this software and related documentation without an express
+license agreement from NVIDIA CORPORATION is strictly prohibited.
+*/}}
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "rtdt.fullname" . }}-aeronim
+  labels:
+    {{- include "rtdt.labels" . | nindent 4 }}
+    {{- include "rtdt.aeronim.selectorLabels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "rtdt.aeronim.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "rtdt.labels" . | nindent 8 }}
+        {{- include "rtdt.aeronim.selectorLabels" . | nindent 8 }}
+    spec:
+      imagePullSecrets:
+        - name: {{ .Values.global.ngcImagePullSecretName }}
+      hostIPC: {{ .Values.aeronim.hostIPC }}
+      containers:
+        - name: aeronim
+          image: "{{ .Values.aeronim.image.repository }}:{{ .Values.aeronim.image.tag }}"
+          imagePullPolicy: {{ .Values.aeronim.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: NGC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "rtdt.ngcApiSecretName" . }}
+                  key: NGC_API_KEY
+            {{- range $key, $value := .Values.aeronim.extraEnv }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.aeronim.resources | nindent 12 }}
+          # AeroNIM / Triton can take 5-10 minutes to load models on first start
+          startupProbe:
+            httpGet:
+              path: /v2/health/ready
+              port: 8080
+            failureThreshold: 60
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /v2/health/ready
+              port: 8080
+            periodSeconds: 15
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /v2/health/live
+              port: 8080
+            periodSeconds: 30
+            failureThreshold: 5
+      {{- with .Values.aeronim.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.aeronim.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.aeronim.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -1,0 +1,136 @@
+# Copyright (c) 2024-2025, NVIDIA CORPORATION.  All rights reserved.
+#
+# NVIDIA CORPORATION and its licensors retain all intellectual property
+# and proprietary rights in and to this software, related documentation
+# and any modifications thereto.  Any use, reproduction, disclosure or
+# distribution of this software and related documentation without an express
+# license agreement from NVIDIA CORPORATION is strictly prohibited.
+
+# -- EZUA configuration
+ezua:
+  domainName: "${DOMAIN_NAME}"
+  #Use next options in order to configure the application endpoint.
+  #Example of a VirtualService is here:
+  virtualService:
+    endpoint: "rtdt.${DOMAIN_NAME}"
+
+# -- Global settings shared across all services
+global:
+  # Name of the Kubernetes image pull secret for nvcr.io
+  ngcImagePullSecretName: "ngc-docker-reg-secret"
+
+# -- NGC secret creation. Set create=false to use a pre-existing secret.
+ngcSecret:
+  create: true
+  # NGC API key — pass via --set ngcSecret.apiKey=$NGC_API_KEY
+  apiKey: ""
+
+# =============================================================================
+# Kit Application (Omniverse rendering + WebRTC streaming)
+# =============================================================================
+kit:
+  image:
+    # Override with your registry path, e.g. myregistry.example.com/rtdt-kit-app
+    repository: rtdt-kit-app
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  resources:
+    limits:
+      nvidia.com/gpu: "1"
+    requests:
+      nvidia.com/gpu: "1"
+
+  # Environment variables passed to the Kit container
+  env:
+    # Which .kit application file to launch
+    kitApp: "omni.rtwt.webrtc.kit"
+    # Path to the USD stage (inside the container)
+    usdUrl: "/home/ubuntu/usd/world_rtwt_minimal.usda"
+    # Format string for STL model paths (inside the container)
+    stlPathFormat: "/data/low_res/detailed_car_{}/aero_suv_low.stl"
+    # WebRTC stream SDK sender timeout
+    senderTimeout: "100000"
+
+  # Port configuration for WebRTC streaming.
+  # These are exposed as hostPorts so the browser can reach them directly.
+  ports:
+    signaling: 49100      # TCP — Kit HTTP API + WebRTC signaling
+    media: 1024            # UDP — media transport
+    webrtcStreaming:       # TCP+UDP — WebRTC streaming range
+      start: 47995
+      end: 48012
+    webrtcData:            # TCP+UDP — WebRTC data channel range
+      start: 49000
+      end: 49007
+
+  # Enable hostPort on Kit ports so WebRTC is reachable from the browser.
+  # Disable if your environment disallows hostPort (you will need to configure
+  # alternative networking, e.g. LoadBalancer or NodePort with URL params).
+  hostPorts:
+    enabled: true
+
+  # Persistent storage for Omniverse caches.
+  # Default is emptyDir (ephemeral). Enable PVCs for persistence across restarts.
+  persistence:
+    ovCache:
+      enabled: false
+      size: 10Gi
+      storageClass: ""
+    ovLocalShare:
+      enabled: false
+      size: 5Gi
+      storageClass: ""
+
+  securityContext:
+    # Set to true only if the NVIDIA GPU Operator is not available
+    privileged: false
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# =============================================================================
+# Web Application (React frontend served by Nginx)
+# =============================================================================
+web:
+  image:
+    # Override with your registry path, e.g. myregistry.example.com/rtdt-web-app
+    repository: rtdt-web-app
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  replicaCount: 1
+
+  service:
+    type: NodePort
+    port: 80
+    # nodePort is only used when type=NodePort
+    nodePort: 30080
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# =============================================================================
+# AeroNIM Inference (NVIDIA NIM for automotive aerodynamics)
+# =============================================================================
+aeronim:
+  extraEnv: {}
+  image:
+    repository: nvcr.io/nim/nvidia/domino-automotive-aero
+    tag: "2.0.0"
+    pullPolicy: IfNotPresent
+
+  resources:
+    limits:
+      nvidia.com/gpu: "1"
+    requests:
+      nvidia.com/gpu: "1"
+
+  # Matches Docker Compose ipc:host for Triton shared-memory performance
+  hostIPC: true
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}

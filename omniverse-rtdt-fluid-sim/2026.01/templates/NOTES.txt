@@ -1,0 +1,74 @@
+
+=======================================================================
+  NVIDIA Digital Twins for Fluid Simulation
+  Version: {{ .Chart.AppVersion }}
+=======================================================================
+
+PREREQUISITES:
+  The Kit and Web container images must be built and pushed to a registry
+  accessible by your cluster before deploying this chart.
+
+    # Build images (from repository root):
+    ./build-docker.sh
+
+    # Tag and push to your registry:
+    docker tag rtdt-kit-app:latest <your-registry>/rtdt-kit-app:latest
+    docker tag rtdt-web-app:latest <your-registry>/rtdt-web-app:latest
+    docker push <your-registry>/rtdt-kit-app:latest
+    docker push <your-registry>/rtdt-web-app:latest
+
+  Then deploy with:
+    --set kit.image.repository=<your-registry>/rtdt-kit-app
+    --set web.image.repository=<your-registry>/rtdt-web-app
+
+-----------------------------------------------------------------------
+
+CHECKING STATUS:
+
+  Watch pods come up:
+    kubectl get pods -l app.kubernetes.io/instance={{ .Release.Name }} -w
+
+  Startup order: AeroNIM (5-10 min) -> Kit (2-5 min) -> Web
+  The Kit and Web pods will wait in Init state until their dependencies
+  pass health checks.
+
+-----------------------------------------------------------------------
+
+ACCESSING THE APPLICATION:
+
+{{- if eq .Values.web.service.type "NodePort" }}
+  Web UI:
+    export NODE_IP=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
+    echo "http://${NODE_IP}:{{ .Values.web.service.nodePort }}"
+{{- else if eq .Values.web.service.type "LoadBalancer" }}
+  Web UI (wait for external IP):
+    kubectl get svc {{ include "rtdt.fullname" . }}-web -w
+{{- else }}
+  Web UI (port-forward):
+    kubectl port-forward svc/{{ include "rtdt.fullname" . }}-web {{ .Values.web.service.port }}:{{ .Values.web.service.port }}
+    echo "http://localhost:{{ .Values.web.service.port }}"
+{{- end }}
+
+-----------------------------------------------------------------------
+
+WEBRTC NETWORKING:
+
+  The WebRTC streaming library connects directly from the browser to the
+  Kit pod for signaling (port {{ .Values.kit.ports.signaling }}) and media streaming
+  (UDP ports {{ .Values.kit.ports.webrtcStreaming.start }}-{{ .Values.kit.ports.webrtcStreaming.end }}, {{ .Values.kit.ports.webrtcData.start }}-{{ .Values.kit.ports.webrtcData.end }}, {{ .Values.kit.ports.media }}).
+
+{{- if .Values.kit.hostPorts.enabled }}
+  hostPort is ENABLED — these ports are exposed directly on the Kit
+  node's IP. The browser must be able to reach the Kit node.
+
+  If the Kit node IP differs from the web service hostname, pass URL
+  parameters to the web app:
+    http://<web-url>?server=<kit-node-ip>
+{{- else }}
+  hostPort is DISABLED — you must configure alternative networking
+  (e.g., LoadBalancer or NodePort) for the Kit WebRTC ports, and pass
+  URL parameters to the web app:
+    http://<web-url>?server=<kit-external-ip>&signalingPort=<port>
+{{- end }}
+
+=======================================================================

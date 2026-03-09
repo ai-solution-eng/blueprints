@@ -1,0 +1,157 @@
+{{/*
+Copyright (c) 2024-2025, NVIDIA CORPORATION.  All rights reserved.
+
+NVIDIA CORPORATION and its licensors retain all intellectual property
+and proprietary rights in and to this software, related documentation
+and any modifications thereto.  Any use, reproduction, disclosure or
+distribution of this software and related documentation without an express
+license agreement from NVIDIA CORPORATION is strictly prohibited.
+*/}}
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "rtdt.fullname" . }}-kit
+  labels:
+    {{- include "rtdt.labels" . | nindent 4 }}
+    {{- include "rtdt.kit.selectorLabels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "rtdt.kit.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "rtdt.labels" . | nindent 8 }}
+        {{- include "rtdt.kit.selectorLabels" . | nindent 8 }}
+    spec:
+      imagePullSecrets:
+        - name: {{ .Values.global.ngcImagePullSecretName }}
+      initContainers:
+        # Wait for AeroNIM inference service to be ready
+        - name: wait-for-aeronim
+          image: curlimages/curl:8.5.0
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Waiting for AeroNIM to be ready..."
+              until curl -sf http://{{ include "rtdt.fullname" . }}-aeronim:8080/v2/health/ready; do
+                echo "  AeroNIM not ready yet, retrying in 10s..."
+                sleep 10
+              done
+              echo "AeroNIM is ready."
+      containers:
+        - name: kit
+          image: "{{ .Values.kit.image.repository }}:{{ .Values.kit.image.tag }}"
+          imagePullPolicy: {{ .Values.kit.image.pullPolicy }}
+          {{- if .Values.kit.securityContext.privileged }}
+          securityContext:
+            privileged: true
+          {{- end }}
+          ports:
+            # ---- Signaling (TCP) ----
+            - name: signaling
+              containerPort: {{ .Values.kit.ports.signaling }}
+              protocol: TCP
+              {{- if .Values.kit.hostPorts.enabled }}
+              hostPort: {{ .Values.kit.ports.signaling }}
+              {{- end }}
+            # ---- Media (UDP) ----
+            - name: media
+              containerPort: {{ .Values.kit.ports.media }}
+              protocol: UDP
+              {{- if .Values.kit.hostPorts.enabled }}
+              hostPort: {{ .Values.kit.ports.media }}
+              {{- end }}
+            # ---- WebRTC streaming range (TCP + UDP) ----
+            {{- $hostPortsEnabled := .Values.kit.hostPorts.enabled }}
+            {{- range $i, $port := untilStep (int .Values.kit.ports.webrtcStreaming.start) (add1 (int .Values.kit.ports.webrtcStreaming.end) | int) 1 }}
+            - name: wrtc-s-t-{{ $port }}
+              containerPort: {{ $port }}
+              protocol: TCP
+              {{- if $hostPortsEnabled }}
+              hostPort: {{ $port }}
+              {{- end }}
+            - name: wrtc-s-u-{{ $port }}
+              containerPort: {{ $port }}
+              protocol: UDP
+              {{- if $hostPortsEnabled }}
+              hostPort: {{ $port }}
+              {{- end }}
+            {{- end }}
+            # ---- WebRTC data range (TCP + UDP) ----
+            {{- range $i, $port := untilStep (int .Values.kit.ports.webrtcData.start) (add1 (int .Values.kit.ports.webrtcData.end) | int) 1 }}
+            - name: wrtc-d-t-{{ $port }}
+              containerPort: {{ $port }}
+              protocol: TCP
+              {{- if $hostPortsEnabled }}
+              hostPort: {{ $port }}
+              {{- end }}
+            - name: wrtc-d-u-{{ $port }}
+              containerPort: {{ $port }}
+              protocol: UDP
+              {{- if $hostPortsEnabled }}
+              hostPort: {{ $port }}
+              {{- end }}
+            {{- end }}
+          env:
+            - name: KIT_APP
+              value: {{ .Values.kit.env.kitApp | quote }}
+            - name: USD_URL
+              value: {{ .Values.kit.env.usdUrl | quote }}
+            - name: STL_PATH_FORMAT
+              value: {{ .Values.kit.env.stlPathFormat | quote }}
+            - name: NIM_TRITON_IP_ADDRESS
+              value: {{ include "rtdt.fullname" . }}-aeronim
+            - name: NIM_TRITON_HTTP_PORT
+              value: "8080"
+            - name: SenderTimeout
+              value: {{ .Values.kit.env.senderTimeout | quote }}
+          resources:
+            {{- toYaml .Values.kit.resources | nindent 12 }}
+          volumeMounts:
+            - name: ov-cache
+              mountPath: /home/ubuntu/.cache/ov
+            - name: ov-local-share
+              mountPath: /home/ubuntu/.local/share/ov/
+          # Kit can take several minutes to load the USD scene and start streaming
+          startupProbe:
+            tcpSocket:
+              port: {{ .Values.kit.ports.signaling }}
+            failureThreshold: 60
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: {{ .Values.kit.ports.signaling }}
+            periodSeconds: 15
+            failureThreshold: 3
+      volumes:
+        - name: ov-cache
+          {{- if .Values.kit.persistence.ovCache.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "rtdt.fullname" . }}-ov-cache
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        - name: ov-local-share
+          {{- if .Values.kit.persistence.ovLocalShare.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "rtdt.fullname" . }}-ov-local-share
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+      {{- with .Values.kit.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.kit.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.kit.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
