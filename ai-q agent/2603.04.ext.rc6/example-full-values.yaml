@@ -116,6 +116,9 @@ aiq:
           mountPath: /app/configs/cm/config_local_frag.yaml
           subPath: config_local_frag.yaml
           readOnly: true
+        - name: postgres-init
+          mountPath: /db-init
+          readOnly: true
       initContainers:
       - name: db-init
         image: bitnami/postgresql:latest
