@@ -1,0 +1,39 @@
+aiq:
+  apps:
+    backend:
+      volumes:
+        - name: agent-config
+          configMap:
+            name: agent-config
+            items:
+            - key: config_local_frag.yaml
+              path: config_local_frag.yaml
+        - name: postgres-init
+          configMap:
+            name: aiq-postgres-init
+      volumeMounts:
+        - name: agent-config
+          mountPath: /app/configs/cm/config_local_frag.yaml
+          subPath: config_local_frag.yaml
+          readOnly: true
+        - name: postgres-init
+          mountPath: /db-init
+          readOnly: true
+      env:
+        CONFIG_FILE: configs/cm/config_local_frag.yaml 
+        RAG_SERVER_URL: http://rag-server.rag.svc.cluster.local:8081/v1
+        RAG_INGEST_URL: http://ingestor-server.rag.svc.cluster.local:8082/v1 
+        TAVILY_HTTP_PROXY: http://10.11.10.1:8080
+        TAVILY_HTTPS_PROXY: http://10.11.10.1:8080
+        HTTP_PROXY: http://10.11.10.1:8080
+        HTTPS_PROXY: http://10.11.10.1:8080
+        NO_PROXY: 10.0.0.0/8,172.0.0.0/8,127.0.0.1,localhost,.svc,cluster.local,.hpe.lab
+        http_proxy: http://10.11.10.1:8080
+        https_proxy: http://10.11.10.1:8080
+        no_proxy: 10.0.0.0/8,172.0.0.0/8,127.0.0.1,localhost,.svc,cluster.local,.hpe.lab
+        AIOHTTP_TRUST_ENV: 'True'
+      image: 
+        repository: jeffoxenberg/aiq-agent
+    frontend: 
+      image: 
+        repository: jeffoxenberg/aiq-frontend
