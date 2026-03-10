@@ -23,6 +23,10 @@ aiq:
         CONFIG_FILE: configs/cm/config_local_frag.yaml 
         RAG_SERVER_URL: http://rag-server.rag.svc.cluster.local:8081/v1
         RAG_INGEST_URL: http://ingestor-server.rag.svc.cluster.local:8082/v1 
+        NEMOTRON_BASE_URL: http://nim-llm.rag.svc.cluster.local:8000/v1
+        NEMOTRON_MODEL_NAME: nvidia/llama-3.3-nemotron-super-49b-v1.5
+        GPT_OSS_BASE_URL: http://nim-llm.rag.svc.cluster.local:8000/v1
+        GPT_OSS_MODEL_NAME: nvidia/llama-3.3-nemotron-super-49b-v1.5
         TAVILY_HTTP_PROXY: http://10.11.10.1:8080
         TAVILY_HTTPS_PROXY: http://10.11.10.1:8080
         HTTP_PROXY: http://10.11.10.1:8080
