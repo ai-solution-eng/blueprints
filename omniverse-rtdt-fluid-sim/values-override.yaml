@@ -1,0 +1,19 @@
+ezua:
+  domainName: "${DOMAIN_NAME}"
+  virtualService:
+    endpoint: "rtdt.${DOMAIN_NAME}"
+ngcSecret:
+  apiKey: placeholder
+kit:
+  image:
+    repository: jeffoxenberg/rtdt-kit-app
+web:
+  service:
+    type: ClusterIP
+  image:
+    repository: jeffoxenberg/rtdt-web-app
+aeronim:
+  extraEnv:
+    HTTP_PROXY: ""
+    HTTPS_PROXY: ""
+    NO_PROXY: ""

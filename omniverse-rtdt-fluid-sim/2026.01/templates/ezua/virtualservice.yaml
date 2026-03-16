@@ -1,0 +1,20 @@
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: {{ include "rtdt.fullname" . }}
+  labels:
+    {{- include "rtdt.labels" . | nindent 4 }}
+spec:
+  gateways:
+  - {{ .Release.Namespace }}/{{ include "rtdt.fullname" . }}-gateway
+  hosts:
+  - {{ .Values.ezua.virtualService.endpoint | required "\nValid .Values.ezua.virtualService.endpoint is required !" }}
+  http:
+  - match:
+    - uri:
+        prefix: ""
+    route:
+    - destination:
+        host: {{ include "rtdt.fullname" . }}-web.{{ .Release.Namespace }}.svc.cluster.local
+        port:
+          number: 80

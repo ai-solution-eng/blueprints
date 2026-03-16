@@ -1,0 +1,28 @@
+{{/*
+Copyright (c) 2024-2025, NVIDIA CORPORATION.  All rights reserved.
+
+NVIDIA CORPORATION and its licensors retain all intellectual property
+and proprietary rights in and to this software, related documentation
+and any modifications thereto.  Any use, reproduction, disclosure or
+distribution of this software and related documentation without an express
+license agreement from NVIDIA CORPORATION is strictly prohibited.
+*/}}
+
+# ClusterIP service for internal access (nginx proxy to Kit API/WebSocket).
+# Browser WebRTC access uses hostPort directly on the Kit pod.
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "rtdt.fullname" . }}-kit
+  labels:
+    {{- include "rtdt.labels" . | nindent 4 }}
+    {{- include "rtdt.kit.selectorLabels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.kit.ports.signaling }}
+      targetPort: {{ .Values.kit.ports.signaling }}
+      protocol: TCP
+      name: signaling
+  selector:
+    {{- include "rtdt.kit.selectorLabels" . | nindent 4 }}
